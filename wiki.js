@@ -2,8 +2,9 @@
    Ninzard wiki: shared page template. Every page loads this file
    at the end of its <body>. It builds the header and footer, lays
    out the infobox, opening quote, contents box, quote boxes, tables
-   and citations, makes party names glow, works out ages, and shows
-   page previews when you hover a link to another page.
+   and citations, makes party names glow (linking each party's first
+   mention to its page), works out ages, and shows page previews when
+   you hover a link to another page.
    ================================================================ */
 (function () {
   'use strict';
@@ -13,7 +14,7 @@
     tagline: "the community's encyclopedia",
     footerNote: 'Signal source withheld.',
     /* IMAGE CODES: the locked page that lists every image code and its link */
-    imageCodes: 'images.html'
+    imageCodes: 'Image_codes.html'
   };
 
   /* LOGO: drawn here rather than loaded as a picture, so it always shows. It sits at the top
@@ -35,9 +36,9 @@
     article: 'h'   /* a picture placed inside an article with <img data-image="code"> */
   };
 
-  /* PARTY GLOWS: any of these words outside quotes and links glows in
-     its party's colour (colours live in wiki.css). Bare words such as
-     "Original", "Home", "Resistance" or "Independent" on their own are too
+  /* PARTY GLOWS: any of these words outside quotes glows in its party's
+     colour (colours live in wiki.css). Bare words such as "Original", "Home",
+     "Resistance", "Poo", "Liberation" or "Independent" on their own are too
      common to match, so wrap those by hand: <span class="or">Original</span>. */
   var PARTIES = [
     { cls: 'or', terms: ['Original Party', 'Tomato Party', 'Ories', 'Orie'] },
@@ -48,7 +49,24 @@
     { cls: 'rs', terms: ['Resistance Party'] },
     { cls: 'bk', terms: ['Breakout Party', 'Celestial Party', 'Celestials', 'Celestial'] },
     { cls: 'in', terms: ['non-affiliated', 'Non-affiliated', 'unaffiliated', 'Unaffiliated'] },
-    { cls: 'ug', terms: ['Unighted Party', 'Unighted', 'Grass Party'] }
+    { cls: 'ug', terms: ['Unighted Party', 'Unighted', 'Grass Party'] },
+    { cls: 'pp', terms: ['Poo Party', 'Poopulists', 'Poopulist'] },
+    { cls: 'lb', terms: ['Liberation Party', 'Liberators'] }
+  ];
+
+  /* PARTY PAGES: the article about each party. As on Wikipedia, a party is linked the first
+     time it is mentioned in an article's text, and again the first time in each infobox; later
+     mentions only glow. Where one colour covers two parties (Breakout and the Celestial Party
+     formed out of it, Unighted and the Grass Party), the later party's names go to its own page.
+     Independents ("in") have no page. Rename a page here if its file is ever renamed. */
+  var PARTY_PAGES = {
+    or: 'Original_Party.html', pv: 'Preservation_Party.html', ds: 'Disco_Party.html',
+    al: 'Alienova_Party.html', hm: 'Home_Party.html', rs: 'Resistance_Party.html',
+    bk: 'Breakout_Party.html', ug: 'Unighted_Party.html', pp: 'Poo_Party.html', lb: 'Liberation_Party.html'
+  };
+  var PARTY_PAGES_BY_NAME = [
+    { cls: 'bk', name: /^Celestial/, page: 'Celestial_Party.html' },
+    { cls: 'ug', name: /^Grass/, page: 'Grass_Party.html' }
   ];
 
   var doc = document, body = doc.body;
@@ -159,14 +177,27 @@
 
     var top = doc.createDocumentFragment();
     top.appendChild(el('div', 'ib-name')).textContent = name;
-    var fig = el('figure', 'ib-fig',
-      '<div class="frame-wrap"><div class="frame"><img alt="" referrerpolicy="no-referrer">' +
-      '<div class="scan" aria-hidden="true"></div><div class="fallback" aria-hidden="true"></div></div></div>');
-    fig.querySelector('img').alt = 'Portrait of ' + name;
-    fig.querySelector('.fallback').textContent = name.charAt(0).toUpperCase();
-    if (caption) fig.appendChild(el('figcaption')).textContent = caption;
-    top.appendChild(fig);
-    pendingPortraits.push([fig.querySelector('img'), image, fig.querySelector('.frame')]);
+    var party = box.getAttribute('data-party'), fig;
+    if (party && !image) {
+      /* a party's infobox: <aside class="infobox" data-party="pv">. Instead of a portrait it shows
+         the party's name on a field of its colour (the colour class is the party's glow class). */
+      fig = el('figure', 'ib-fig', '<div class="frame-wrap"><div class="ib-emblem" role="img"><span></span><i aria-hidden="true"></i></div></div>');
+      var emb = fig.querySelector('.ib-emblem');
+      emb.classList.add(party);
+      emb.setAttribute('aria-label', name + ' colours');
+      emb.querySelector('span').textContent = name;
+      if (caption) fig.appendChild(el('figcaption')).textContent = caption;
+      top.appendChild(fig);
+    } else {
+      fig = el('figure', 'ib-fig',
+        '<div class="frame-wrap"><div class="frame"><img alt="" referrerpolicy="no-referrer">' +
+        '<div class="scan" aria-hidden="true"></div><div class="fallback" aria-hidden="true"></div></div></div>');
+      fig.querySelector('img').alt = 'Portrait of ' + name;
+      fig.querySelector('.fallback').textContent = name.charAt(0).toUpperCase();
+      if (caption) fig.appendChild(el('figcaption')).textContent = caption;
+      top.appendChild(fig);
+      pendingPortraits.push([fig.querySelector('img'), image, fig.querySelector('.frame')]);
+    }
 
     each(Array.prototype.slice.call(box.children), function (c) {
       if (c.tagName === 'H3') {
@@ -397,13 +428,21 @@
   PARTIES.forEach(function (p) { p.terms.forEach(function (t) { termClass[t] = p.cls; terms.push(t); }); });
   terms.sort(function (a, b) { return b.length - a.length; });
   var GLOW = new RegExp('\\b(' + terms.map(function (t) { return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|') + ')\\b');
-  /* not inside quotes, links (except the contents box), or text that already glows */
+  /* not inside quotes, links (except the contents box and links to a party's page), or text that already glows */
   var NO_GLOW = 'blockquote, script, style, .no-glow, ' + PARTIES.map(function (p) { return '.' + p.cls; }).join(', ');
+  var partyFiles = {};
+  Object.keys(PARTY_PAGES).forEach(function (c) { partyFiles[PARTY_PAGES[c].toLowerCase()] = true; });
+  PARTY_PAGES_BY_NAME.forEach(function (p) { partyFiles[p.page.toLowerCase()] = true; });
+  function partyFile(href) {
+    var m = (href || '').match(/^(?:\.\/)?([^\/?#]+\.html?)(?:#.*)?$/i);
+    return m && partyFiles[m[1].toLowerCase()] ? m[1] : null;
+  }
   function skipGlow(node) {
     var p = node.parentNode;
     if (!p.closest) return true;
     if (p.closest(NO_GLOW)) return true;
-    return !!p.closest('a') && !p.closest('.toc, .hc');
+    var a = p.closest('a');
+    return !!a && !a.closest('.toc, .hc') && !partyFile(a.getAttribute('href'));
   }
   function glow(root) {
     var w = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), list = [], t;
@@ -421,6 +460,61 @@
     });
   }
   glow(main);
+
+  /* ---------- party links: the first mention of each party links to its page (see PARTY PAGES) ---------- */
+  var NO_PARTY_LINK = 'a, h1, h2, h3, h4, h5, h6, blockquote, nav, details, table, .tbl, .succ, .hatnote, .refs, .cats, ' +
+    'figcaption, .hero, .ib-name, .ib-head, .ib-band, .ib-in, .ib-emblem, dt, .swatch, .no-link';
+  function partyPageFor(span) {
+    var text = span.textContent.trim();
+    if (!text) return null;
+    var cls = span.className.split(/\s+/).filter(function (c) { return PARTY_PAGES[c]; })[0];
+    if (!cls) return null;
+    for (var i = 0; i < PARTY_PAGES_BY_NAME.length; i++) {
+      var p = PARTY_PAGES_BY_NAME[i];
+      if (p.cls === cls && p.name.test(text)) return p.page;
+    }
+    return PARTY_PAGES[cls];
+  }
+  function thisPage(file) {
+    var here = decodeURIComponent(location.pathname.split('/').pop() || '').replace(/\.html?$/i, '');
+    return here.toLowerCase() === file.replace(/\.html?$/i, '').toLowerCase();
+  }
+  /* each infobox links its own first mentions; everything else counts as the article's text */
+  function partyRegion(node) {
+    var box = node.closest('aside.infobox');
+    if (box) return node.closest('dd') ? box : null;
+    return main;
+  }
+  (function linkParties() {
+    var regions = [], linked = [];
+    function seen(region) {
+      var i = regions.indexOf(region);
+      if (i < 0) { regions.push(region); linked.push({}); i = regions.length - 1; }
+      return linked[i];
+    }
+    /* links already written by hand count as the first mention */
+    each(main.querySelectorAll('a[href]'), function (a) {
+      var file = partyFile(a.getAttribute('href'));
+      if (!file) return;
+      a.classList.add('plink');
+      if (a.parentNode.closest && a.parentNode.closest(NO_PARTY_LINK)) return;
+      var region = partyRegion(a);
+      if (region) seen(region)[file.toLowerCase()] = true;
+    });
+    var sel = Object.keys(PARTY_PAGES).map(function (c) { return 'span.' + c; }).join(', ');
+    each(main.querySelectorAll(sel), function (span) {
+      if (span.closest(NO_PARTY_LINK)) return;
+      var region = partyRegion(span); if (!region) return;
+      var file = partyPageFor(span); if (!file || thisPage(file)) return;
+      var done = seen(region);
+      if (done[file.toLowerCase()]) return;
+      done[file.toLowerCase()] = true;
+      var a = doc.createElement('a');
+      a.setAttribute('href', file); a.className = 'plink';
+      span.parentNode.insertBefore(a, span);
+      a.appendChild(span);
+    });
+  })();
 
   /* ---------- keep each citation glued to the word before it ---------- */
   each(main.querySelectorAll('sup.ref'), function (sp) {

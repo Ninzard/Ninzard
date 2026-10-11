@@ -46,6 +46,12 @@
   --unight:#064509;  /* Unighted Party, and the Grass Party that came out of it */
   --unight-glow:0 0 1px rgba(165,245,175,.95),0 0 4px rgba(45,175,65,.75),0 0 12px rgba(6,69,9,.9);
   --unight-pulse:0 0 1px rgba(185,250,195,1),0 0 6px rgba(60,195,80,.9),0 0 18px rgba(6,90,12,1);
+  --poo:#824120;     /* Poo Party, Poopulists (dark, so it has a light inner halo like Breakout and Unighted) */
+  --poo-glow:0 0 1px rgba(250,215,185,.9),0 0 4px rgba(205,125,70,.7),0 0 12px rgba(130,65,32,.9);
+  --poo-pulse:0 0 1px rgba(255,225,200,1),0 0 6px rgba(220,140,80,.85),0 0 18px rgba(150,75,36,1);
+  --lib:#ee67ff;     /* Liberation Party, Liberators */
+  --lib-glow:0 0 5px rgba(238,103,255,.55),0 0 14px rgba(238,103,255,.28);
+  --lib-pulse:0 0 8px rgba(242,135,255,.8),0 0 20px rgba(238,103,255,.48);
   /* the logo's idle glow, and the peak of its pulse */
   --logo-glow:drop-shadow(0 0 4px rgba(160,85,200,.45)) drop-shadow(0 0 12px rgba(150,50,90,.28));
   --logo-pulse:drop-shadow(0 0 6px rgba(185,110,230,.7)) drop-shadow(0 0 20px rgba(175,60,115,.45));
@@ -77,7 +83,7 @@ b,strong{font-weight:600}
 #stage{width:900px;margin:0 auto;padding:0 28px 48px;transform-origin:0 0}
 
 /* party colours */
-.or,.pv,.ds,.al,.hm,.rs,.bk,.in,.ug{font-weight:600;white-space:nowrap;animation-duration:3.4s;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
+.or,.pv,.ds,.al,.hm,.rs,.bk,.in,.ug,.pp,.lb{font-weight:600;white-space:nowrap;animation-duration:3.4s;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
 .or{color:var(--orie);text-shadow:var(--orie-glow);animation-name:glowOr}
 .pv{color:var(--pres);text-shadow:var(--pres-glow);animation-name:glowPv}
 .ds{color:var(--disco);text-shadow:var(--disco-glow);animation-name:glowDs}
@@ -87,6 +93,8 @@ b,strong{font-weight:600}
 .bk{color:var(--break);text-shadow:var(--break-glow);animation-name:glowBk}
 .in{color:var(--indep);text-shadow:var(--indep-glow);animation-name:glowIn}
 .ug{color:var(--unight);text-shadow:var(--unight-glow);animation-name:glowUg}
+.pp{color:var(--poo);text-shadow:var(--poo-glow);animation-name:glowPp}
+.lb{color:var(--lib);text-shadow:var(--lib-glow);animation-name:glowLb}
 @keyframes glowOr{50%{text-shadow:var(--orie-pulse)}}
 @keyframes glowPv{50%{text-shadow:var(--pres-pulse)}}
 @keyframes glowDs{50%{text-shadow:var(--disco-pulse)}}
@@ -96,6 +104,13 @@ b,strong{font-weight:600}
 @keyframes glowBk{50%{text-shadow:var(--break-pulse)}}
 @keyframes glowIn{50%{text-shadow:var(--indep-pulse)}}
 @keyframes glowUg{50%{text-shadow:var(--unight-pulse)}}
+@keyframes glowPp{50%{text-shadow:var(--poo-pulse)}}
+@keyframes glowLb{50%{text-shadow:var(--lib-pulse)}}
+/* a link to a party's page keeps the party's colour; it is underlined on hover */
+a.plink{text-decoration:none}
+a.plink:hover>span,a.plink:focus-visible>span{text-decoration:underline;text-underline-offset:3px}
+/* a party's colour as a small square: <span class="swatch pv"></span> */
+.swatch{display:inline-block;width:13px;height:13px;margin-right:7px;vertical-align:-1px;background:currentColor;border-radius:2px;animation:none!important}
 
 /* opening quote, at the top of the article */
 .hero{position:relative;margin:2px 0 26px;padding:24px 30px 22px 36px;border:1px solid var(--line);
@@ -172,6 +187,11 @@ sup.ref{font:500 11px/0 var(--disp);margin-left:1px}
 .frame.fail img,.frame.fail .scan{display:none}
 .frame.fail .fallback{display:grid}
 .ib-fig figcaption{margin-top:12px;text-align:center;font:400 13px/1.4 var(--text);color:var(--mute)}
+/* a party's infobox (data-party="pv"): the party's name on a field of its colour, in place of a portrait */
+.ib-emblem{position:relative;margin:6px 8px 0;min-height:150px;display:grid;place-items:center;padding:22px 16px 26px;text-align:center;
+  background:#0a0510;background:radial-gradient(ellipse at 50% 46%,color-mix(in srgb,currentColor 24%,transparent),transparent 72%),#0a0510;
+  font:700 25px/1.2 var(--disp);letter-spacing:.02em;white-space:normal;overflow:hidden}
+.ib-emblem i{position:absolute;left:0;right:0;bottom:0;height:6px;background:currentColor;box-shadow:0 0 12px currentColor}
 .ib-head{margin:12px -10px 8px;padding:6px 10px;text-align:center;background:var(--band);font:700 15px/1.3 var(--disp)}
 .ib-head .lk{color:var(--link)}
 .ib-band{margin:-8px -10px 8px;padding:5px 10px;text-align:center;background:rgba(195,162,255,.07);border-bottom:1px solid rgba(195,162,255,.14);font:700 15px/1.3 var(--disp);color:var(--link)}
