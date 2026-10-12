@@ -13,23 +13,22 @@
     name: '41 52 43 48 49 56 45 53',
     tagline: "the community's encyclopedia",
     footerNote: 'Signal source withheld.',
-    /* IMAGE CODES: the locked page that lists every image code and its link */
+    /* IMAGE CODES: the page that lists every image code and its link */
     imageCodes: 'Image_codes.html'
   };
 
   /* LOGO: drawn here rather than loaded as a picture, so it always shows. It sits at the top
-     of every page and is the browser-tab icon; its glow is --logo-glow in wiki.css.
-     (The login screen has its own copy in lock-template.html.) */
+     of every page and is the browser-tab icon; its glow is --logo-glow in wiki.css. */
   var LOGO = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" aria-hidden="true"><defs><linearGradient id="nz-g" x1="0" y1="0" x2="0" y2="300" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#523c7b"/><stop offset=".33" stop-color="#623869"/><stop offset=".58" stop-color="#70355d"/><stop offset=".8" stop-color="#7e3350"/><stop offset="1" stop-color="#8b3044"/></linearGradient><clipPath id="nz-c"><circle cx="150" cy="150" r="127"/></clipPath></defs><circle cx="150" cy="150" r="148" fill="url(#nz-g)" stroke="#07040a" stroke-width="4"/><circle cx="150" cy="150" r="141" fill="#1c1a1f"/><g clip-path="url(#nz-c)" fill="url(#nz-g)"><rect x="20" y="24.5" width="260" height="18"/><rect x="20" y="64.5" width="260" height="14"/><rect x="20" y="94.5" width="260" height="17"/><rect x="20" y="127.5" width="260" height="24"/><rect x="20" y="162.5" width="260" height="31"/><rect x="20" y="201.5" width="260" height="39"/><rect x="20" y="243.5" width="260" height="40"/></g><path fill="#d4d3d8" d="M137.5 40.5 67.5 117.5 137.5 194.5ZM162.5 95.5 231.5 169.5 162.5 248.5Z"/><path fill="#fff" d="M137.5 51.5 71.5 122.5 137.5 194.5ZM162.5 105.5 228.5 177.5 162.5 248.5Z"/></svg>';
 
   /* PICTURE SIZES: Imgur keeps smaller copies of every upload, so a page never has to download a
      full-size file just to show a small portrait. A letter added after the image's ID picks the copy:
      t = 160px, m = 320px, l = 640px, h = 1024px on the longest side, in the same proportions.
-     The links in images.html stay the full-size originals and the uploaded files are never changed;
+     The links in Image_codes.html stay the full-size originals and the uploaded files are never changed;
      if a smaller copy can't be had, the full-size picture is used. Change a letter here to make one
      kind of picture sharper (a later letter) or lighter (an earlier one). */
   var PICTURE_SIZE = {
-    gallery: 'm',  /* the portrait tiles on faces.html */
+    gallery: 'm',  /* the portrait tiles on Faces_of_Ninzard.html */
     infobox: 'l',  /* the portrait at the top of an article */
     preview: 'm',  /* the picture in a hover preview card */
     codes: 't',    /* the small pictures on the image codes page */
@@ -256,49 +255,14 @@
     img.src = sources[0];
   }
 
-  /* ---------- reading other pages of the wiki, locked or not ---------- */
-  var canFetch = !!(window.fetch && window.crypto && crypto.subtle && window.DOMParser);
-  function storedKey() {
-    try { return sessionStorage.getItem('staticrypt_session') || localStorage.getItem('staticrypt_passphrase'); }
-    catch (e) { return null; }
-  }
-  function hexBytes(h) { var a = new Uint8Array(h.length / 2); for (var i = 0; i < h.length; i += 2) a[i / 2] = parseInt(h.substr(i, 2), 16); return a; }
-  function bytesHex(buf) { return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join(''); }
-  function unlock(signed, key) {
-    var sig = signed.slice(0, 64), msg = signed.slice(64), raw = hexBytes(key);
-    return crypto.subtle.importKey('raw', raw, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
-      .then(function (k) { return crypto.subtle.sign('HMAC', k, new TextEncoder().encode(msg)); })
-      .then(function (s) {
-        if (bytesHex(s) !== sig) throw new Error('key');
-        return crypto.subtle.importKey('raw', raw, 'AES-CBC', false, ['decrypt']);
-      })
-      .then(function (k) { return crypto.subtle.decrypt({ name: 'AES-CBC', iv: hexBytes(msg.slice(0, 32)) }, k, hexBytes(msg.slice(32))); })
-      .then(function (out) { return new TextDecoder().decode(out); });
-  }
-  /* the login screen saves the key a moment after the page appears, so wait briefly for it */
-  function waitForKey(ms) {
-    return new Promise(function (done) {
-      var start = Date.now();
-      (function poll() {
-        var k = storedKey();
-        if (k || Date.now() - start > ms) done(k); else setTimeout(poll, 60);
-      })();
-    });
-  }
+  /* ---------- reading other pages of the wiki (for image codes and page previews) ---------- */
+  var canFetch = !!(window.fetch && window.DOMParser);
   function fetchPage(url) {
     return fetch(url, { credentials: 'same-origin' })
-      .then(function (r) { if (!r.ok) throw new Error('fetch'); return r.text(); })
-      .then(function (src) {
-        var m = src.match(/"staticryptEncryptedMsgUniqueVariableName":\s*"([^"]+)"/);
-        if (!m) return src;
-        return waitForKey(3000).then(function (key) {
-          if (!key) throw new Error('no key');
-          return unlock(m[1], key);
-        });
-      });
+      .then(function (r) { if (!r.ok) throw new Error('fetch'); return r.text(); });
   }
 
-  /* ---------- image codes: data-image="spinzle" is looked up in images.html ---------- */
+  /* ---------- image codes: data-image="spinzle" is looked up in Image_codes.html ---------- */
   function readCodes(root) {
     var map = {};
     each(root.querySelectorAll('table.image-codes tr'), function (tr) {
@@ -331,7 +295,7 @@
 
   pendingPortraits.forEach(function (p) { showImage(p[0], p[1], p[2], PICTURE_SIZE.infobox, 'first'); });
 
-  /* pictures elsewhere on a page: <img data-image="code" alt="…"> (the gallery tiles on faces.html are these too) */
+  /* pictures elsewhere on a page: <img data-image="code" alt="…"> (the gallery tiles on Faces_of_Ninzard.html are these too) */
   each(main.querySelectorAll('img[data-image]'), function (img) {
     if (img.closest('.infobox')) return;
     showImage(img, img.getAttribute('data-image'), img, img.closest('.face-pic') ? PICTURE_SIZE.gallery : PICTURE_SIZE.article);
@@ -546,20 +510,9 @@
 
   doc.documentElement.classList.add('wiki-ready');
 
-  /* logging out: adding #staticrypt_logout to the address of the page you are on also works */
-  window.addEventListener('hashchange', function () {
-    if (!/staticrypt_logout/.test(location.hash)) return;
-    try {
-      localStorage.removeItem('staticrypt_passphrase'); localStorage.removeItem('staticrypt_expiration');
-      sessionStorage.removeItem('staticrypt_session');
-    } catch (e) {}
-    location.reload();
-  });
-
   /* ================================================================
      PAGE PREVIEWS: hover a link to another page to see its opening
-     lines. Locked pages are unlocked in the browser with the same
-     key the reader already used to open this page.
+     lines.
      ================================================================ */
   var canHover = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   if (!canHover || !canFetch) return;
