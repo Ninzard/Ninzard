@@ -203,7 +203,7 @@
         var head = el('div', 'ib-head');
         while (c.firstChild) head.appendChild(c.firstChild);
         if (!c.classList.contains('plain')) {
-          /* a leading ordinal ("10th", "2nd & 4th") stays white; the office name is link-coloured, up to any line break */
+          /* a leading ordinal ("10th", "2nd & 4th") stays white; the role name is link-coloured, up to any line break */
           var start = head.firstChild;
           if (start && start.nodeType === 3) {
             var m = start.nodeValue.match(ORDINAL);
@@ -315,7 +315,7 @@
 
   /* ---------- succession box: <table class="succession"> ---------- */
   each(main.querySelectorAll('table.succession'), function (t) {
-    var box = el('div', 'succ'); box.setAttribute('role', 'table'); box.setAttribute('aria-label', 'Offices held');
+    var box = el('div', 'succ'); box.setAttribute('role', 'table'); box.setAttribute('aria-label', 'Roles held');
     each(t.querySelectorAll('tr'), function (tr) {
       var c = tr.children, row = el('div', 'succ-row'); row.setAttribute('role', 'row');
       var before = el('div', null, '<small>Preceded by</small>'), mid = el('div', 'mid'), after = el('div', null, '<small>Succeeded by</small>');
@@ -532,7 +532,7 @@
     var d = new DOMParser().parseFromString(html, 'text/html');
     var head = d.querySelector('h1');
     var box = d.querySelector('aside.infobox');
-    var office = box && Array.prototype.filter.call(box.querySelectorAll('h3'), function (h) { return !h.classList.contains('plain'); })[0];
+    var role = box && Array.prototype.filter.call(box.querySelectorAll('h3'), function (h) { return !h.classList.contains('plain'); })[0];
     var lead = Array.prototype.filter.call(d.querySelectorAll('p'), function (p) {
       return p.textContent.trim() && !p.closest('aside, blockquote, nav, table, footer, .hatnote, .note, .toc') && !p.classList.contains('note');
     })[0];
@@ -546,7 +546,7 @@
     var name = (box && box.getAttribute('data-name')) || (head ? head.textContent.trim() : d.title);
     return {
       title: head ? head.textContent.trim() : d.title,
-      desc: office ? office.textContent.replace(/\s+/g, ' ').trim() : '',
+      desc: role ? role.textContent.replace(/\s+/g, ' ').trim() : '',
       image: box && box.getAttribute('data-image'),
       letter: (name || '?').charAt(0).toUpperCase(),
       extract: extract.innerHTML
