@@ -216,7 +216,7 @@
         box.replaceChild(head, c);
       } else if (c.tagName === 'P' && c.classList.contains('term')) {
         var term = el('div', 'ib-in', '<b></b>');
-        term.firstChild.textContent = c.getAttribute('data-label') || 'In office';
+        term.firstChild.textContent = c.getAttribute('data-label') || 'Tenure';
         while (c.firstChild) term.appendChild(c.firstChild);
         box.replaceChild(term, c);
       } else if (c.tagName === 'P' && c.classList.contains('band')) {
