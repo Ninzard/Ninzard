@@ -40,8 +40,8 @@
      "Resistance", "Poo", "Liberation" or "Independent" on their own are too
      common to match, so wrap those by hand: <span class="or">Original</span>. */
   var PARTIES = [
-    { cls: 'or', terms: ['Original Party', 'Tomato Party', 'Ories', 'Orie'] },
-    { cls: 'pv', terms: ['Preservation Party', 'Preservates', 'Preservate'] },
+    { cls: 'or', terms: ['Original Party', 'Tomato Party', 'Ories', 'Orie', 'Orie Apparatus'] },
+    { cls: 'pv', terms: ['Preservation Party', 'Preservates', 'Preservate', 'Preservate Apparatus'] },
     { cls: 'ds', terms: ['Disconic Party', 'Disco Party', 'Disconics', 'Disconic', 'Disco'] },
     { cls: 'al', terms: ['Alienova Party', 'Alienova', 'Revamp Party'] },
     { cls: 'hm', terms: ['Home Party'] },
