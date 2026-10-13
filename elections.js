@@ -7,7 +7,9 @@
        margin, with a card showing the exact count when you hover,
        tap or tab to a district;
      - the results table: the winner's cells shaded in their colour,
-       and each row lighting up its district on the map.
+       every candidate's numbers glowing in their party's colour, and
+       each row lighting up its district on the map;
+     - the portraits at the head of endorsement panels.
    Everything shown is read from the page itself: candidates and votes
    from the results table, district shapes from the map's <svg>, the
    map's title from its data-plate. No election is written in here.
@@ -22,10 +24,12 @@
   var IMAGE_CODES = 'Image_codes.html';
   /* margins of victory, in percentage points, that separate the five shades of a map */
   var TIERS = [10, 20, 40, 60];
-  /* how much of the party's colour each shade carries, from the narrowest win to the widest */
-  var SHADE = [0.34, 0.5, 0.66, 0.82, 0.97];
-  /* the night the party colours are mixed into (wiki.css --night, a touch lifted) */
-  var NIGHT = [14, 8, 22];
+  /* the five shades, from the narrowest win to the widest: a close race is a pale tint of the
+     winner's colour, a landslide a deep, dark shade of it. A negative number mixes the party's
+     colour towards white by that much, a positive one towards black. */
+  var SHADE = [-0.62, -0.4, -0.12, 0.25, 0.5];
+  /* how much lighter a district turns while it is hovered */
+  var LIFT = 0.2;
   var SVGNS = 'http://www.w3.org/2000/svg';
 
   var each = function (list, fn) { Array.prototype.forEach.call(list, fn); };
@@ -115,7 +119,10 @@
     return rgbOf[cls];
   }
   function rgb(c, a) { return a == null ? 'rgb(' + c.join(',') + ')' : 'rgba(' + c.join(',') + ',' + a + ')'; }
-  function shade(c, k) { return rgb(c.map(function (v, i) { return Math.round(NIGHT[i] + (v - NIGHT[i]) * k); })); }
+  function shade(c, k) {
+    var to = k < 0 ? [255, 255, 255] : [6, 3, 12], a = Math.min(1, Math.abs(k));
+    return rgb(c.map(function (v, i) { return Math.round(v + (to[i] - v) * a); }));
+  }
   function tierOf(margin) { var t = 0; while (t < TIERS.length && margin >= TIERS[t]) t++; return t; }
   function tierLabels() {
     var out = ['< ' + TIERS[0]];
@@ -155,10 +162,28 @@
     return { cands: cands, rows: rows, byKey: byKey };
   }
 
+  function glowNumber(cell, party) {
+    if (!cell || !party) return;
+    cell.classList.add('pn');
+    cell.setAttribute('data-party', party);
+  }
   function decorateTable(table, res) {
     each(table.querySelectorAll('thead th.cand'), function (th, i) {
       var c = partyRGB(res.cands[i] && res.cands[i].party);
       th.style.boxShadow = 'inset 0 3px 0 ' + rgb(c);
+    });
+    /* each candidate's votes (td.v) and the share after them glow in the candidate's colour;
+       the margin (td.mg) glows in the colour of whoever it favours: + the first candidate, − the second */
+    each(table.querySelectorAll('tbody tr, tfoot tr'), function (tr) {
+      each(tr.querySelectorAll('td.v'), function (td, i) {
+        var party = res.cands[i] && res.cands[i].party;
+        glowNumber(td, party);
+        var next = td.nextElementSibling;
+        if (next && !next.classList.contains('v') && !next.classList.contains('mg')) glowNumber(next, party);
+      });
+      var mg = tr.querySelector('td.mg'), text = mg ? mg.textContent.trim() : '';
+      if (mg && /^[+]/.test(text) && res.cands[0]) glowNumber(mg, res.cands[0].party);
+      if (mg && /^[−-]/.test(text) && res.cands[1]) glowNumber(mg, res.cands[1].party);
     });
     res.rows.forEach(function (r) {
       var cells = r.tr.querySelectorAll('td.v'), cell = cells[r.win];
@@ -201,14 +226,16 @@
       nm.textContent = cand.name;
       top.appendChild(nm);
       if (won) top.appendChild(el('span', 'ez-c-tag', 'Carried'));
-      top.appendChild(el('em', null, num(r.votes[i])));
+      top.appendChild(el('em', 'pn', num(r.votes[i])));
       info.appendChild(top);
       info.appendChild(el('span', 'ez-c-bar', '<i style="width:' + r.share[i].toFixed(2) + '%"></i>'));
-      info.appendChild(el('span', 'ez-c-sub', '<span>' + (won ? 'Winner' : '&nbsp;') + '</span><strong>' + pct(r.share[i]) + '</strong>'));
+      info.appendChild(el('span', 'ez-c-sub', '<span>' + (won ? 'Winner' : '&nbsp;') + '</span><strong class="pn">' + pct(r.share[i]) + '</strong>'));
       row.appendChild(pic); row.appendChild(info);
       c.appendChild(row);
     });
-    var foot = '<b>' + esc(res.cands[r.win] ? res.cands[r.win].name : '') + ' +' + r.margin.toFixed(1) + '</b> points';
+    var winner = res.cands[r.win] || {};
+    var foot = '<b>' + esc(winner.name || '') + '</b> <b class="pn" data-party="' + esc(winner.party || 'none') + '">+' +
+      r.margin.toFixed(1) + '</b> points';
     if (r.note) foot += ' · ' + esc(r.note);
     c.appendChild(el('div', 'ez-c-foot', foot));
     return c;
@@ -275,8 +302,8 @@
         '<path d="M28 0H0V28" fill="none" stroke="rgba(195,162,255,.065)" stroke-width="1"/></pattern>' +
       '<filter id="' + id + '-blur" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="6"/></filter>' +
       '<linearGradient id="' + id + '-sweep" x1="0" x2="1" y1="0" y2="0">' +
-        '<stop offset="0" stop-color="#ff8fb4" stop-opacity="0"/><stop offset=".8" stop-color="#ff8fb4" stop-opacity=".07"/>' +
-        '<stop offset=".97" stop-color="#ffc2d8" stop-opacity=".2"/><stop offset="1" stop-color="#ffe0ec" stop-opacity=".05"/></linearGradient>' +
+        '<stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".8" stop-color="#fff" stop-opacity=".06"/>' +
+        '<stop offset=".97" stop-color="#fff" stop-opacity=".18"/><stop offset="1" stop-color="#fff" stop-opacity=".04"/></linearGradient>' +
       '<clipPath id="' + id + '-land"><path d="' + esc(coastD) + '"/></clipPath>';
 
     sv('rect', { 'class': 'ez-sea', width: W, height: H, fill: 'url(#' + id + '-sea)' }, svg);
@@ -293,7 +320,7 @@
       var x = +p.getAttribute('data-x'), y = +p.getAttribute('data-y');
       if (!r || !r.total) { path.setAttribute('fill', '#2a1a3d'); return; }
       var cand = res.cands[r.win], c = partyRGB(cand && cand.party), t = tierOf(r.margin);
-      var base = shade(c, SHADE[t]), lit = shade(c, Math.min(1.08, SHADE[t] + 0.16));
+      var base = shade(c, SHADE[t]), lit = shade(c, Math.max(-0.72, SHADE[t] - LIFT));
       path.setAttribute('fill', base);
       path._base = base; path._lit = lit; path._r = r;
       paths[key] = path;
@@ -324,8 +351,11 @@
     svg.appendChild(labels);
     if (!opt.mini) chrome(svg, W, H, fig, res);
 
-    /* ---------- hover, tap and keyboard ---------- */
-    var active = null, pinned = false;
+    /* ---------- hover, tap and keyboard ----------
+       With a mouse the card follows the pointer and disappears as soon as it leaves the district
+       (or the map). Only a tap on a touch screen pins it; tapping again or anywhere else closes it.
+       A keyboard user tabbing to a district sees the card until they tab away. */
+    var active = null, pinned = false, lastPointer = 'mouse';
     function on(path) {
       if (active && active !== path) off(active);
       active = path;
@@ -356,11 +386,15 @@
         placeCard(e.clientX, e.clientY);
       });
       path.addEventListener('pointerleave', function (e) {
-        if (e.pointerType === 'touch' || pinned) return;
-        off(path); hideCard();
+        if (e.pointerType === 'touch') return;
+        pinned = false; off(path); hideCard();
       });
+      path.addEventListener('pointerdown', function (e) { lastPointer = e.pointerType || 'mouse'; });
+      /* a press never gives the district keyboard focus, so the card can't be left behind by it */
+      path.addEventListener('mousedown', function (e) { e.preventDefault(); });
       path.addEventListener('click', function (e) {
         e.stopPropagation();
+        if (lastPointer !== 'touch') return;
         if (pinned && active === path) { pinned = false; off(path); hideCard(); return; }
         pinned = true; on(path); showCard(res, r, e.clientX, e.clientY);
       });
@@ -376,6 +410,11 @@
         tr.addEventListener('mouseleave', function () { off(path); });
       }
     });
+    svg.addEventListener('pointerleave', function (e) {
+      if (e.pointerType === 'touch') return;
+      pinned = false; if (active) off(active); hideCard();
+    });
+    window.addEventListener('blur', function () { pinned = false; if (active) off(active); hideCard(); });
     doc.addEventListener('click', function () { if (pinned) { pinned = false; if (active) off(active); hideCard(); } });
     window.addEventListener('scroll', function () { if (pinned) { pinned = false; if (active) off(active); hideCard(); } }, { passive: true });
     doc.addEventListener('keydown', function (e) { if (e.key === 'Escape' && active) { pinned = false; off(active); hideCard(); } });
@@ -481,6 +520,7 @@
       cands.forEach(function (c) {
         var dd = c.querySelectorAll('dl > dd')[row], cell = el('div', 'val');
         if (dd) { cell.className += dd.className ? ' ' + dd.className : ''; while (dd.firstChild) cell.appendChild(dd.firstChild); }
+        if (cell.classList.contains('big')) glowNumber(cell, c.getAttribute('data-party'));
         grid.appendChild(cell);
       });
     });
@@ -506,7 +546,9 @@
       frag.appendChild(bar);
       if (cands.length === 2) {
         frag.appendChild(el('div', 'el-bar-lbl',
-          '<span>' + pct(votes[0] / sum * 100) + '</span><span class="half">50%</span><span>' + pct(votes[1] / sum * 100) + '</span>'));
+          '<span class="pn" data-party="' + esc(cands[0].getAttribute('data-party') || 'none') + '">' + pct(votes[0] / sum * 100) + '</span>' +
+          '<span class="half">50%</span>' +
+          '<span class="pn" data-party="' + esc(cands[1].getAttribute('data-party') || 'none') + '">' + pct(votes[1] / sum * 100) + '</span>'));
       }
     }
     return frag;
@@ -517,6 +559,15 @@
     var fig = box.querySelector(':scope > .ib-fig');
     if (fig) fig.parentNode.removeChild(fig);
     each(box.querySelectorAll(':scope > .el-cands'), function (wrap) { wrap.parentNode.replaceChild(buildCandidates(wrap), wrap); });
+  });
+
+  /* ---------- endorsement panels: <span class="en-pic" data-image="poka" data-name="Poka"></span> ---------- */
+  each(main.querySelectorAll('.endorse .en-pic[data-image]'), function (p) {
+    p.innerHTML = '<img alt=""><b aria-hidden="true"></b>';
+    var name = p.getAttribute('data-name') || '';
+    p.querySelector('img').alt = name;
+    p.querySelector('b').textContent = name.charAt(0).toUpperCase();
+    picture(p.querySelector('img'), p.getAttribute('data-image'), p, 'm');
   });
 
   /* ---------- draw the maps: full maps first, then copies of them ---------- */
