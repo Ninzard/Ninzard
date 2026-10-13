@@ -1,0 +1,217 @@
+/* ================================================================
+   Ninzard wiki: elections. Election pages load this file after
+   wiki.css. It styles the election infobox, the district maps and
+   their hover card, the results tables and the share-of-the-vote
+   charts. All colours come from wiki.css: the COLOURS block and the
+   party colours there.
+   ================================================================ */
+
+/* a party's colour as --pc, for bars and frames: data-party="pv" */
+[data-party=or]{--pc:var(--orie)}
+[data-party=pv]{--pc:var(--pres)}
+[data-party=ds]{--pc:var(--disco)}
+[data-party=al]{--pc:var(--alien)}
+[data-party=hm]{--pc:var(--home)}
+[data-party=rs]{--pc:var(--resist)}
+[data-party=bk]{--pc:var(--break)}
+[data-party=in]{--pc:var(--indep)}
+[data-party=ug]{--pc:var(--unight)}
+[data-party=pp]{--pc:var(--poo)}
+[data-party=lb]{--pc:var(--lib)}
+[data-party=none]{--pc:#7d6a96}
+
+/* ================================================================
+   Election infobox: <aside class="infobox election">
+   ================================================================ */
+.infobox.election{width:344px}
+.el-nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin:2px 0 4px;font:500 13px/1.3 var(--disp);color:var(--mute)}
+.el-nav>*{min-width:0}
+.el-nav>:first-child{justify-self:start}
+.el-nav>:first-child::before{content:"‹ ";color:var(--accent)}
+.el-nav>:nth-child(2){color:var(--ink);font-weight:600;text-align:center}
+.el-nav>:last-child{justify-self:end}
+.el-nav>:last-child::after{content:" ›";color:var(--accent)}
+.el-nav>.none::before,.el-nav>.none::after{content:none}
+
+.el-grid{display:grid;grid-template-columns:66px repeat(var(--n,2),minmax(0,1fr));column-gap:9px;margin:10px 0 0;font:400 13px/1.35 var(--disp)}
+.el-grid>.lab{padding:5px 0;border-top:1px solid rgba(58,36,82,.8);font-weight:700;color:var(--ink)}
+.el-grid>.val{padding:5px 0;border-top:1px solid rgba(58,36,82,.8);text-align:center;color:var(--link);min-width:0;overflow-wrap:anywhere}
+.el-grid>.val.plain{color:var(--ink)}
+.el-grid>.val small{display:block;color:var(--mute);font-size:11.5px}
+.el-grid>.lab.blank,.el-grid>.el-pic{border-top:0}
+.el-grid>.el-nm{font:700 15.5px/1.25 var(--disp);padding:7px 0 6px;color:var(--ink)}
+.el-grid>.el-nm a{color:var(--ink)}
+.el-grid>.el-nm::after{content:"";display:block;width:26px;height:2px;margin:5px auto 0;background:var(--pc);box-shadow:0 0 8px var(--pc)}
+.el-grid>.val.big{font-size:15.5px;font-weight:700;color:var(--ink)}
+
+.el-pic{position:relative;padding:0 0 10px}
+.el-frame{position:relative;aspect-ratio:4/5;background:#0a0510;overflow:hidden;border:1px solid var(--line)}
+.el-frame::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;z-index:3;background:var(--pc);box-shadow:0 0 12px var(--pc)}
+.el-frame img{display:block;width:100%;height:100%;object-fit:cover}
+.el-frame .fallback{position:absolute;inset:0;display:none;place-items:center;aspect-ratio:auto;font:700 46px/1 var(--disp)}
+.el-frame.fail img,.el-frame.fail .scan{display:none}
+.el-frame.fail .fallback{display:grid}
+.el-frame .scan{position:absolute;left:0;right:0;top:-30%;height:30%;pointer-events:none;z-index:2;
+  background:linear-gradient(180deg,transparent,rgba(255,143,180,.1) 60%,rgba(255,143,180,.24) 62%,transparent 64%);
+  animation:scan 6s linear infinite}
+.el-pic:not(.won) .el-frame img{filter:saturate(.7) brightness(.82)}
+.el-pic.won .el-frame{border-color:rgba(255,143,180,.65);box-shadow:0 0 18px rgba(255,143,180,.2)}
+.el-won{position:absolute;left:50%;bottom:0;z-index:4;transform:translateX(-50%);padding:2px 9px 1px;white-space:nowrap;
+  font:700 10px/1.45 var(--disp);letter-spacing:.16em;text-transform:uppercase;color:#1c0a15;background:var(--accent);box-shadow:0 0 14px rgba(255,143,180,.6)}
+
+.el-bar{position:relative;display:flex;height:10px;margin:12px 0 5px;background:#0a0510;border:1px solid var(--line)}
+.el-bar i{display:block;height:100%}
+.el-bar::after{content:"";position:absolute;left:50%;top:-5px;bottom:-5px;width:1px;background:rgba(236,228,245,.7)}
+.el-bar-lbl{display:flex;justify-content:space-between;margin:0 0 8px;font:600 12.5px/1.3 var(--disp);color:var(--ink)}
+.el-bar-lbl .half{color:var(--mute);font-weight:500;font-size:11px}
+
+/* ================================================================
+   District maps: <figure class="election-map">
+   ================================================================ */
+.election-map{margin:12px 0 26px}
+/* before elections.js has drawn it (or if it can't), the bare map still reads */
+.election-map>svg{display:block;width:100%;height:auto;background:#0b0612;border:1px solid var(--line)}
+.election-map>svg .depth path{fill:none;stroke:rgba(195,162,255,.12)}
+.election-map>svg .coast{fill:none;stroke:var(--accent)}
+.election-map>svg .districts path{fill:#2a1a3d;stroke:#07040c;stroke-width:1.5}
+
+.ez-frame{position:relative;line-height:0;border:1px solid var(--line);background:#05020a;overflow:hidden}
+.ez-frame::before{content:"";position:absolute;left:-1px;right:-1px;top:-1px;height:2px;z-index:2;pointer-events:none;
+  background:linear-gradient(90deg,var(--accent),rgba(195,162,255,.55) 55%,rgba(195,162,255,0))}
+.ez-frame::after{content:"";position:absolute;inset:6px;pointer-events:none;
+  background:
+    linear-gradient(var(--accent),var(--accent)) top left/16px 2px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) top left/2px 16px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) top right/16px 2px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) top right/2px 16px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) bottom left/16px 2px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) bottom left/2px 16px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) bottom right/16px 2px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) bottom right/2px 16px no-repeat;
+  opacity:.75}
+.ez-svg{display:block;width:100%;height:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+
+.ez-depth path{fill:none;stroke:rgba(195,162,255,.16);stroke-width:1}
+.ez-depth path+path{stroke:rgba(195,162,255,.1);stroke-dasharray:3 6}
+.ez-depth path+path+path{stroke:rgba(195,162,255,.06);stroke-dasharray:1 7}
+.ez-halo{fill:rgba(255,143,180,.06);stroke:rgba(255,143,180,.5);stroke-width:9}
+.ez-d{stroke:#07040c;stroke-width:1.6;stroke-linejoin:round;cursor:pointer;outline:none;transition:opacity .2s ease,fill .2s ease,stroke-width .2s ease}
+.ez-svg.dim .ez-d:not(.on){opacity:.4}
+.ez-d.on{stroke:#fff8fc;stroke-width:2.6}
+.ez-coast{fill:none;stroke:rgba(255,196,218,.75);stroke-width:1.1;pointer-events:none}
+.ez-sweepclip{pointer-events:none}
+.ez-sweep{animation:ezSweep 8s linear infinite;mix-blend-mode:screen}
+@keyframes ezSweep{from{transform:translateX(0)}to{transform:translateX(var(--sweep,1020px))}}
+
+.ez-labels{pointer-events:none}
+.ez-lbl{transition:opacity .2s ease}
+.ez-svg.dim .ez-lbl:not(.on){opacity:.35}
+.ez-name{font:700 13.5px var(--disp);letter-spacing:.18em;fill:#fff;text-anchor:middle;paint-order:stroke;stroke:rgba(5,2,10,.8);stroke-width:3.5px;stroke-linejoin:round}
+.ez-pct{font:600 11.5px var(--disp);letter-spacing:.05em;fill:rgba(255,255,255,.86);text-anchor:middle;paint-order:stroke;stroke:rgba(5,2,10,.75);stroke-width:3px;stroke-linejoin:round}
+.ez-dot{fill:#fff}
+.ez-ping{fill:#fff;transform-box:fill-box;transform-origin:center;animation:ezPing 2.6s ease-out infinite}
+@keyframes ezPing{0%{transform:scale(1);opacity:.75}100%{transform:scale(4.4);opacity:0}}
+
+.ez-chrome text{font-family:var(--disp)}
+.ez-p1{font-size:10.5px;font-weight:600;letter-spacing:.34em;fill:var(--mute)}
+.ez-p2{font-size:19px;font-weight:700;letter-spacing:.07em;fill:var(--ink)}
+.ez-p3{font-size:10.5px;font-weight:600;letter-spacing:.22em;fill:var(--accent)}
+.ez-p-rule{fill:var(--accent)}
+.ez-tick{stroke:rgba(195,162,255,.32);stroke-width:1}
+.ez-compass circle{fill:rgba(11,6,18,.55);stroke:rgba(195,162,255,.28)}
+.ez-compass circle.in{fill:none;stroke-dasharray:2 3}
+.ez-compass .n{fill:var(--accent)}
+.ez-compass .s{fill:rgba(195,162,255,.45)}
+.ez-compass text{font-size:11px;font-weight:700;fill:var(--accent);text-anchor:middle}
+
+.election-map figcaption{margin-top:10px;font:400 14px/1.5 var(--text);color:var(--mute)}
+.ez-legend{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 26px;margin-top:12px}
+.ez-key{display:grid;grid-template-columns:auto repeat(5,40px);gap:4px 3px;align-items:center;font:500 11.5px/1.2 var(--disp);color:var(--mute)}
+.ez-k-h{padding-right:12px}
+.ez-k-t{text-align:center}
+.ez-k-n{padding-right:12px;font-size:13px}
+.ez-key i{display:block;height:12px}
+.ez-hint{flex:1 1 240px;margin:0!important;font:italic 13px/1.45 var(--text);color:var(--mute);text-align:right}
+
+/* a small copy of a map: in an infobox, or a gallery of maps */
+.election-map.mini{margin:12px 0 6px}
+.mini .ez-frame::after{inset:4px;background-size:10px 2px,2px 10px,10px 2px,2px 10px,10px 2px,2px 10px,10px 2px,2px 10px}
+.mini .ez-halo{stroke-width:12}
+.mini .ez-sweepclip{display:none}
+.infobox .election-map figcaption{margin-top:8px;font-size:13px;line-height:1.4;text-align:center}
+.ez-pair{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:12px 0 24px}
+.ez-pair .election-map{margin:0}
+.ez-pair figcaption{text-align:center}
+.ez-pair figcaption b{display:block;font:600 16px/1.3 var(--disp);color:var(--ink)}
+
+/* ================================================================
+   The card that appears over a district
+   ================================================================ */
+.ez-card{position:fixed;top:0;left:0;z-index:61;width:318px;max-width:calc(100vw - 16px);pointer-events:none;
+  background:linear-gradient(180deg,var(--deck2),var(--deck));border:1px solid var(--line);
+  box-shadow:0 18px 42px rgba(0,0,0,.6),0 0 0 1px rgba(0,0,0,.25);
+  opacity:0;transform:translateY(4px) scale(.98);transform-origin:top left;transition:opacity .14s ease,transform .14s ease;
+  font:400 13px/1.35 var(--disp);color:var(--ink)}
+.ez-card.on{opacity:1;transform:none}
+.ez-card::before{content:"";position:absolute;left:-1px;right:-1px;top:-1px;height:2px;background:linear-gradient(90deg,var(--accent),rgba(195,162,255,.55) 55%,rgba(195,162,255,0))}
+.ez-c{padding:13px 15px 12px}
+.ez-c-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding-bottom:9px;border-bottom:1px solid var(--line)}
+.ez-c-kick{display:block;font-size:10px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--mute)}
+.ez-c-name{display:block;margin-top:3px;font-size:22px;font-weight:700;line-height:1.05}
+.ez-c-total{font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--accent);white-space:nowrap}
+.ez-c-row{display:grid;grid-template-columns:44px 1fr;gap:11px;align-items:center;padding-top:10px}
+.ez-c-row:not(.win){opacity:.78}
+.ez-c-pic{position:relative;width:44px;height:55px;background:#0a0510;border:1px solid var(--line);overflow:hidden}
+.ez-c-pic::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;z-index:1;background:var(--pc);box-shadow:0 0 8px var(--pc)}
+.ez-c-pic img{display:block;width:100%;height:100%;object-fit:cover}
+.ez-c-pic b{display:none;position:absolute;inset:0;place-items:center;font:700 22px/1 var(--disp);color:var(--accent)}
+.ez-c-pic.fail img{display:none}
+.ez-c-pic.fail b{display:grid}
+.ez-c-info{min-width:0}
+.ez-c-top{display:flex;align-items:baseline;gap:7px}
+.ez-c-top b{font-size:15px;font-weight:700}
+.ez-c-top em{margin-left:auto;font-style:normal;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.ez-c-tag{font-size:9px;font-weight:700;line-height:1.6;letter-spacing:.16em;text-transform:uppercase;color:#1c0a15;background:var(--accent);padding:0 5px}
+.ez-c-bar{display:block;height:7px;margin:6px 0 4px;background:rgba(195,162,255,.1)}
+.ez-c-bar i{display:block;height:100%;background:var(--pc);box-shadow:0 0 9px var(--pc)}
+.ez-c-sub{display:flex;justify-content:space-between;font-size:11.5px;color:var(--mute)}
+.ez-c-sub strong{font-size:12.5px;color:var(--ink)}
+.ez-c-row.win .ez-c-sub strong{color:var(--accent)}
+.ez-c-foot{margin-top:11px;padding-top:9px;border-top:1px solid var(--line);font:400 13px/1.45 var(--text);color:var(--mute)}
+.ez-c-foot b{font-family:var(--disp);color:var(--ink)}
+
+/* ================================================================
+   Results tables
+   ================================================================ */
+.tbl td.num,.tbl th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl th.cand{color:var(--ink)}
+.tbl tr.ez-hl td{background:rgba(255,143,180,.1)!important}
+.tbl tfoot td{font-weight:700;background:var(--deck2);border-top:1px solid var(--line)}
+.tbl tbody tr[data-district]{transition:background .15s ease}
+/* a bar after a share in a table: <span class="vbar" data-party="pv" style="--w:62.2%"></span> */
+.vbar{position:relative;display:inline-block;width:120px;height:8px;margin-left:10px;vertical-align:1px;background:rgba(195,162,255,.1)}
+.vbar::before{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--w);background:var(--pc);box-shadow:0 0 8px var(--pc)}
+
+/* ================================================================
+   Share-of-the-vote chart: <div class="share-chart"> with rows of
+   <div class="sc-row"><span class="sc-year">2025</span>
+     <span class="sc-bar"><i class="w" data-party="pv" style="width:62.2%"><b>Apollos</b>62.2%</i>…</span></div>
+   ================================================================ */
+.share-chart{position:relative;margin:10px 0 24px;padding:16px 18px 12px;border:1px solid var(--line);background:var(--deck)}
+.share-chart::before{content:"";position:absolute;left:-1px;right:-1px;top:-1px;height:2px;background:linear-gradient(90deg,var(--accent),rgba(195,162,255,.55) 55%,rgba(195,162,255,0))}
+.sc-row{display:grid;grid-template-columns:58px 1fr;gap:12px;align-items:center;margin:0 0 10px}
+.sc-year{font:700 16px/1 var(--disp)}
+.sc-bar{position:relative;display:flex;height:26px;background:rgba(195,162,255,.06)}
+.sc-bar::after{content:"";position:absolute;left:50%;top:-4px;bottom:-4px;width:1px;background:rgba(236,228,245,.45);z-index:2}
+.sc-bar i{display:flex;align-items:center;gap:6px;height:100%;padding:0 9px;overflow:hidden;white-space:nowrap;
+  font:600 12.5px/1 var(--disp);font-style:normal;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8);
+  background:var(--pc);opacity:.55;border-right:1px solid #07040c}
+.sc-bar i.w{opacity:1;box-shadow:0 0 16px var(--pc);position:relative;z-index:1}
+.sc-bar i b{font-weight:700}
+.sc-note{grid-column:2;margin-top:-5px;font:italic 13px/1.4 var(--text);color:var(--mute)}
+.sc-axis{display:grid;grid-template-columns:58px 1fr;gap:12px;font:500 11px/1 var(--disp);color:var(--mute)}
+.sc-axis span{display:flex;justify-content:space-between}
+
+@media (prefers-reduced-motion:reduce){
+  .ez-sweep,.ez-ping{display:none}
+}
