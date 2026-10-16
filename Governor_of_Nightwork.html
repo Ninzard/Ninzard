@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Governors of Nightwork</title>
+<link rel="stylesheet" href="wiki.css">
+<style>
+  /* Specialized styling for executive dossier showcase */
+  .governor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+  .governor-card {
+    background: #11141a;
+    border: 1px solid #232a36;
+    border-radius: 8px;
+    padding: 1.25rem;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+  .governor-card:hover {
+    transform: translateY(-3px);
+    border-color: #3b82f6;
+  }
+  .gov-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+  }
+  .badge-feudal { background: #374151; color: #f3f4f6; }
+  .badge-garrison { background: #7c2d12; color: #ffedd5; }
+  .badge-preservate { background: #1e3a8a; color: #dbeafe; }
+  .badge-orie { background: #831843; color: #fce7f3; }
+  .badge-nexit { background: #064e3b; color: #d1fae5; }
+  .gov-number {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .gov-name {
+    font-size: 1.5rem;
+    margin: 0.25rem 0 0.5rem;
+    font-weight: 800;
+  }
+  .gov-name a {
+    color: #f8fafc;
+    text-decoration: none;
+  }
+  .gov-name a:hover {
+    color: #60a5fa;
+    text-decoration: underline;
+  }
+  .gov-alias {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin-bottom: 0.75rem;
+    font-style: italic;
+  }
+  .gov-term {
+    font-size: 0.8rem;
+    color: #cbd5e1;
+    background: #1e2430;
+    padding: 0.35rem 0.6rem;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 1rem;
+    font-family: monospace;
+  }
+  .gov-quote {
+    border-left: 3px solid #3b82f6;
+    padding-left: 0.75rem;
+    font-size: 0.875rem;
+    font-style: italic;
+    color: #94a3b8;
+    margin: 0.75rem 0 1rem;
+    line-height: 1.4;
+  }
+  .gov-meta {
+    font-size: 0.8rem;
+    border-top: 1px solid #1e293b;
+    padding-top: 0.75rem;
+    color: #94a3b8;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .gov-meta strong {
+    color: #e2e8f0;
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .badge-party {
+    display: inline-block;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    font-weight: 600;
+    font-size: 0.75rem;
+  }
+  .bp-home { background: #334155; color: #f8fafc; }
+  .bp-orie { background: #9d174d; color: #fff; }
+  .bp-ind { background: #475569; color: #fff; }
+  .bp-pv { background: #1d4ed8; color: #fff; }
+  .bp-pop { background: #b45309; color: #fff; }
+</style>
+</head>
+<body data-edited="16 October 2026">
+
+<h1>Governors of Nightwork</h1>
+
+<div class="hatnote">This article outlines the high executive office of the Nightian Faction from its establishment in 2015 to its formal dissolution under Nexit in 2025.</div>
+
+<blockquote class="hero" data-label="Historical Inscription">
+  <p>The streets of Sacramento are not a simulation, and the frontier of Nightwork was never a sandbox for children. From the first port-scan of the Nightian War to the final severing of Nexit, the Governor held the line between the city outside and the madness within.</p>
+  <footer>— <b>Archives of the Ninzard Project</b>, Section XVIII</footer>
+</blockquote>
+
+<aside class="infobox" data-caption="The High Executive of the Nightian Faction">
+  <h3>Governor of Nightwork</h3>
+  <p class="term" data-label="Status">Abolished (22 September 2025)</p>
+  <dl>
+    <dt>First holder</dt><dd><a href="Elusion.html">Elusion</a> (11 July 2015)</dd>
+    <dt>Final holder</dt><dd><a href="Aceiron.html">Aceiron</a> (22 September 2025)</dd>
+    <dt>Seat of power</dt><dd>Nightwork Executive Command / Sacramento Diaspora</dd>
+    <dt>Governed territory</dt><dd>Main, Parry, Scope, Volley, Waffle</dd>
+    <dt>Succession</dt><dd>Presidency of the Ninzard Project</dd>
+  </dl>
+</aside>
+
+<p>The <b>Governor of Nightwork</b> was the supreme executive office of the Nightian Faction within the <a href="Ninzard_Project.html">Ninzard Project</a>. Established unofficially on 11 July 2015 following the reunification of Nightwork and Ninzardia, the governorship served as the regional counterweight to the Ninzard Presidency, commanding the five historic districts of Main, Parry, Scope, Volley, and Waffle.<sup class="ref">1,2</sup></p>
+
+<p>Across its ten-year existence, nine governors held the office across distinct operational eras: the foundational truce of <a href="Elusion.html">Elusion</a>; the Golden Era militarization of <a href="DegreeZ.html">DegreeZ</a>; the authoritarian one-month crackdown of <a href="PiggieMLG.html">PiggieMLG</a>; the criminal expansionism of <a href="Spikester.html">Spikester</a>; the ironclad isolation of <a href="Syn.html">Syn</a>; the emergency defense of <a href="Cyntaku.html">Cyntaku</a>; the clinical constitutionalism of <a href="Spinzle.html">Spinzle</a>; the bureaucratic sanctuary of <a href="Adelynn.html">Adelynn</a>; and the populist secessionism of <a href="Aceiron.html">Aceiron</a>.<sup class="ref">2,3,4</sup> The office was abolished following the execution of Nexit in 2025, when Nightwork subsumed the entirety of the community infrastructure.<sup class="ref">5</sup></p>
+
+<nav class="toc"></nav>
+
+<section>
+<h2 id="dossiers">The Nine Governors</h2>
+<p>Each governor inherited an escalating crucible of digital warfare, physical diaspora altercations in Sacramento and Los Angeles, covert cyber-operations, and deep-state intrigue. Below are the definitive dossiers of the nine executives.</p>
+
+<div class="governor-grid">
+
+  <!-- 1. ELUSION -->
+  <article class="governor-card">
+    <div>
+      <span class="gov-badge badge-feudal">Founder</span>
+      <span class="gov-number">1st Governor</span>
+      <h3 class="gov-name"><a href="Elusion.html">Elusion</a></h3>
+      <div class="gov-alias">Mark Ionescu • “The Old Wizard” • “The Awakener”</div>
+      <div class="gov-term">11 July 2015 – 31 December 2016</div>
+      <div class="gov-quote">“A truce implies a balance of power. There is no balance here. An independent Nightwork is an ideological threat to the Ninzard framework.”</div>
+    </div>
+    <div class="gov-meta">
+      <div><strong>Party</strong> <span class="badge-party bp-home">Home</span></div>
+      <div><strong>Origin</strong> Sacramento / SoCal</div>
+      <div><strong>Landmark Conflict</strong> Nightian War / Civil War</div>
+      <div><strong>Signature Move</strong> TCP Tarpit Defense</div>
+    </div>
+  </article>
+
+  <!-- 2. DEGREEZ -->
+  <article class="governor-card">
+    <div>
+      <span class="gov-badge badge-feudal">Golden Era</span>
+      <span class="gov-number">2nd Governor</span>
+      <h3 class="gov-name"><a href="DegreeZ.html">DegreeZ</a></h3>
+      <div class="gov-alias">Jason Kim • “The Commander of Parry”</div>
+      <div class="gov-term">1 January 2017 – 23 October 2018</div>
+      <div class="gov-quote">“The war in which they awakened the sleeping giant.”</div>
+    </div>
+    <div class="gov-meta">
+      <div><strong>Party</strong> <span class="badge-party bp-orie">Original</span></div>
+      <div><strong>Deputy</strong> Caleb Jensen / Xorbit</div>
+      <div><strong>Landmark Conflict</strong> RSN War (2018)</div>
+      <div><strong>Signature Move</strong> Staged Treason Protocol</div>
+    </div>
+  </article>
+
+  <!-- 3. PIGGIEMLG -->
+  <article class="governor-card">
+    <div>
+      <span class="gov-badge badge-garrison">Crisis</span>
+      <span class="gov-number">3rd Governor</span>
+      <h3 class="gov-name"><a href="PiggieMLG.html">PiggieMLG</a></h3>
+      <div class="gov-alias">MrPiggie • “The 31-Day Enforcer”</div>
+      <div class="gov-term">27 October 2018 – 27 November 2018</div>
+      <div class="gov-quote">“There will be strict rules that will be enforced throughout the Nightian Faction. Any failure will result in banishment.”</div>
+    </div>
+    <div class="gov-meta">
+      <div><strong>Party</strong> <span class="badge-party bp-orie">Original</span></div>
+      <div><strong>Deputy</strong> Xorbit</div>
+      <div><strong>Landmark Conflict</strong> Pirate Raiders Incursion</div>
+      <div><strong>Downfall</strong> Council Impeachment / Doxx</div>
+    </div>
+  </article>
+
+  <!-- 4. SPIKESTER -->
+  <article class="governor-card">
+    <div>
+      <span class="gov-badge badge-garrison">Underground</span>
+      <span class="gov-number">4th Governor</span>
+      <h3 class="gov-name"><a href="Spikester.html">Spikester</a></h3>
+      <div class="gov-alias">Davide Tagliaferro • “King of the Garrison State”</div>
+      <div class="gov-term">27 November 2018 – 29 February 2020</div>
+      <div class="gov-quote">“Let December 10 be your day of mystery. Tomorrow is a new day.”</div>
+    </div>
+    <div class="gov-meta">
+      <div><strong>Party</strong> <span class="badge-party bp-ind">Independent</span></div>
+      <div><strong>Deputy</strong> Xorbit</div>
+      <div><strong>Landmark Conflict</strong> War with Quorey / Deadaxz</div>
+      <div><strong>Doctrine</strong> The Doctrine of Progression</div>
+    </div>
+  </article>
+
+  <!-- 5. SYN -->
+  <article class="governor-card">
+    <div>
+      <span class="gov-badge badge-preservate">Fortress</span>
+      <span class="gov-number">5th Governor</span>
+      <h3 class="gov-name"><a href="Syn.html">Syn</a></h3>
+      <div class="gov-alias">Noah Jay Byun • “The Hermit King” • “독사”</div>
+      <div class="gov-term">1 March 2020 – 7 January 2022</div>
+      <div class="gov-quote">“Either you privatize the platform or limit free speech. To suggest otherwise is merely an idealistic fallacy.”</div>
+    </div>
+    <div class="gov-meta">
+      <div><strong>Party</strong> <span class="badge-party bp-pv">Preservation</span></div>
+      <div><strong>Deputy</strong> Cyntaku</div>
+      <div><strong>Landmark Conflict</strong> UCI Fallout / Pop-Up Revolt</div>
+      <div><strong>Doctrine</strong> The Axiom Quarantine</div>
+    </div>
+  </article>
+
+  <!-- 6. CYNTAKU -->
+  <article class="governor-card">
+    <div>
+      <span class="gov-badge badge-preservate">Siege</span>
+      <span class="gov-number">6th Governor</span>
+      <h3 class="gov-name"><a href="Cyntaku.html">Cyntaku</a></h3>
+      <div class="gov-alias">Madelyn Schroeder • “The Iron Lady of Volley”</div>
+      <div class="gov-term">7 January 2022 – 10 July 2022</div>
+      <div class="gov-quote">“I do what every governor has done since Elusion. I push for policies because it is the right path to preserving what we treasure.”</div>
+    </div>
+    <div class="gov-meta">
+      <div><strong>Party</strong> <span class="badge-party bp-pv">Preservation</span></div>
+      <div><strong>Deputy</strong> Adelynn</div>
+      <div><strong>Landmark Conflict</strong> May Panic / Joygate Fallout</div>
+      <div><strong>Creation</strong> Nightian-Ninzardian Assembly</div>
+    </div>
+  </article>
+
+  <!-- 7. SPINZLE -->
+  <article class="governor-card">
+    <div>
+      <span class="gov-badge badge-orie">Technocrat</span>
+      <span class="gov-number">7th Governor</span>
+      <h3 class="gov-name"><a href="Spinzle.html">Spinzle</a></h3>
+      <div class="gov-alias">Edith Bethany Arden • “The Cold Architect”</div>
+      <div class="gov-term">10 July 2022 – 3 January 2023</div>
+      <div class="gov-quote">“Hello.”</div>
+    </div>
+    <div class="gov-meta">
+      <div><strong>Party</strong> <span class="badge-party bp-pop">OPC Coalition</span></div>
+      <div><strong>Deputy</strong> Atria</div>
+      <div><strong>Landmark Reform</strong> Integrity Protocols &amp; CVS</div>
+      <div><strong>Secret Weapon</strong> Dead Man's Switch (Frankfurt)</div>
+    </div>
+  </article>
+
+  <!-- 8. ADELYNN -->
+  <article class="governor-card">
+    <div>
+      <span class="gov-badge badge-preservate">Sanctuary</span>
+      <span class="gov-number">8th Governor</span>
+      <h3 class="gov-name"><a href="Adelynn.html">Adelynn</a></h3>
+      <div class="gov-alias">Adelynn Leclaire • “The Velvet Fortress”</div>
+      <div class="gov-term">3 January 2023 – 31 December 2024</div>
+      <div class="gov-quote">“We are the Dreadnought. They are merely torpedo boats trying to scratch the hull.”</div>
+    </div>
+    <div class="gov-meta">
+      <div><strong>Party</strong> <span class="badge-party bp-pv">Preservation (Logos)</span></div>
+      <div><strong>Deputy</strong> Grace</div>
+      <div><strong>Landmark Reform</strong> Equalization &amp; Sponsorship</div>
+      <div><strong>Moral Stand</strong> Foreclosure Site Extraction</div>
+    </div>
+  </article>
+
+  <!-- 9. ACEIRON -->
+  <article class="governor-card">
+    <div>
+      <span class="gov-badge badge-nexit">Sovereign</span>
+      <span class="gov-number">9th Governor</span>
+      <h3 class="gov-name"><a href="Aceiron.html">Aceiron</a></h3>
+      <div class="gov-alias">Caleb Jensen • “The Mad Magician”</div>
+      <div class="gov-term">1 January 2025 – 22 September 2025</div>
+      <div class="gov-quote">“Nexit is done. Do not help us. Cat will die. The real war starts today.”</div>
+    </div>
+    <div class="gov-meta">
+      <div><strong>Party</strong> <span class="badge-party bp-orie">Original</span></div>
+      <div><strong>Deputy</strong> AJ</div>
+      <div><strong>Landmark Action</strong> Execution of Nexit</div>
+      <div><strong>Final Decree</strong> Abolition of the Governorship</div>
+    </div>
+  </article>
+
+</div>
+</section>
+
+<section>
+<h2 id="chronological-ledger">Chronological Ledger of Executives</h2>
+
+<table>
+<thead>
+<tr>
+  <th>No.</th>
+  <th>Governor</th>
+  <th>Term of Office</th>
+  <th>Party</th>
+  <th>Deputy Governor</th>
+  <th>Key Crises &amp; Reforms</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><b>1</b></td>
+  <td><b><a href="Elusion.html">Elusion</a></b></td>
+  <td>11 Jul 2015 – 31 Dec 2016</td>
+  <td><span class="badge-party bp-home">Home</span></td>
+  <td><i>Unestablished</i></td>
+  <td>Repelled Orion1 root infiltration; negotiated Ninzardia–Nightwork merger; founded Parry, Scope, Volley legions.</td>
+</tr>
+<tr>
+  <td><b>2</b></td>
+  <td><b><a href="DegreeZ.html">DegreeZ</a></b></td>
+  <td>1 Jan 2017 – 23 Oct 2018</td>
+  <td><span class="badge-party bp-orie">Original</span></td>
+  <td>Caleb Jensen<br>Xorbit</td>
+  <td>Presided over Golden Era; waged RSN War; deployed Aceiron as double agent; resigned following personal scandal.</td>
+</tr>
+<tr>
+  <td><b>3</b></td>
+  <td><b><a href="PiggieMLG.html">PiggieMLG</a></b></td>
+  <td>27 Oct 2018 – 27 Nov 2018</td>
+  <td><span class="badge-party bp-orie">Original</span></td>
+  <td>Xorbit</td>
+  <td>Instituted 31-day anti-drama regime; clashed with Ninzard Council and Chairman Ducky; impeached and ousted by Spikester.</td>
+</tr>
+<tr>
+  <td><b>4</b></td>
+  <td><b><a href="Spikester.html">Spikester</a></b></td>
+  <td>27 Nov 2018 – 29 Feb 2020</td>
+  <td><span class="badge-party bp-ind">Independent</span></td>
+  <td>Xorbit</td>
+  <td>Doctrine of Progression; incorporated Underground satellites; ran illicit pharmaceutical pipeline; arrested by feds.</td>
+</tr>
+<tr>
+  <td><b>5</b></td>
+  <td><b><a href="Syn.html">Syn</a></b></td>
+  <td>1 Mar 2020 – 7 Jan 2022</td>
+  <td><span class="badge-party bp-pv">Preservation</span></td>
+  <td>Cyntaku</td>
+  <td>Founded Preservation Party; enforced Hermit Kingdom lockdown; survived 1-vote May 2021 election; built institutional firewall.</td>
+</tr>
+<tr>
+  <td><b>6</b></td>
+  <td><b><a href="Cyntaku.html">Cyntaku</a></b></td>
+  <td>7 Jan 2022 – 10 Jul 2022</td>
+  <td><span class="badge-party bp-pv">Preservation</span></td>
+  <td>Adelynn</td>
+  <td>Established Nightian-Ninzardian Assembly; Anti-Bullying Amendment; navigated May Panic; rejected Cat's initial bribe.</td>
+</tr>
+<tr>
+  <td><b>7</b></td>
+  <td><b><a href="Spinzle.html">Spinzle</a></b></td>
+  <td>10 Jul 2022 – 3 Jan 2023</td>
+  <td><span class="badge-party bp-pop">OPC</span></td>
+  <td>Atria</td>
+  <td>CVS 10% ballot standard; Administrative Transparency Act; General's Veto; secret Dead Man's Switch against Cat.</td>
+</tr>
+<tr>
+  <td><b>8</b></td>
+  <td><b><a href="Adelynn.html">Adelynn</a></b></td>
+  <td>3 Jan 2023 – 31 Dec 2024</td>
+  <td><span class="badge-party bp-pv">Preservation</span></td>
+  <td>Grace</td>
+  <td>District Equalization; Sponsorship Standard; withstood Cat's terror campaign; single-handedly rescued Tierra from kidnapping.</td>
+</tr>
+<tr>
+  <td><b>9</b></td>
+  <td><b><a href="Aceiron.html">Aceiron</a></b></td>
+  <td>1 Jan 2025 – 22 Sep 2025</td>
+  <td><span class="badge-party bp-orie">Original</span></td>
+  <td>AJ</td>
+  <td>Declared and executed Nexit; severed Nightwork from Cat's empire; purged neo-Nazi cells; abolished the office.</td>
+</tr>
+</tbody>
+</table>
+
+</section>
+
+<section>
+<h2 id="references">References</h2>
+<p class="note">Fragments recovered from Phases I–V.</p>
+<ol class="refs">
+<li id="r1">Phase I, §3.2.0 <i>“June 2015 Elections.”</i></li>
+<li id="r2">Phase II, §5.1.2 <i>“Electoral Reforms.”</i></li>
+<li id="r3">Phase II, §6.7.0 <i>“Governor PiggieMLG”</i>; §7.1.0 <i>“Rise of Governor Spikester.”</i></li>
+<li id="r4">Phase II, §7.6.0 <i>“Expansionist Backlash”</i>; Phase IV, §16.0.0 <i>“Section XVI Preface.”</i></li>
+<li id="r5">Phase IV, §16.1.0 <i>“The 2025 Presidential Election.”</i></li>
+</ol>
+</section>
+
+<!-- Automatic navbox placeholder rendered via wiki.js -->
+<nav class="navbox" data-template="governors-of-nightwork"></nav>
+
+<!-- Automatic category list populated by template -->
+<ul class="cats" data-template="governors-of-nightwork"></ul>
+
+<script src="wiki.js"></script>
+</body>
+</html>
