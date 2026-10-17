@@ -3,8 +3,9 @@
    at the end of its <body>. It builds the header and footer, lays
    out the infobox, opening quote, contents box, quote boxes, tables
    and citations, makes party names glow (linking each party's first
-   mention to its page), works out ages, and shows page previews when
-   you hover a link to another page.
+   mention to its page), works out ages, opens the Talk chatroom
+   behind every page's Talk tab, and shows page previews when you
+   hover a link to another page.
    ================================================================ */
 (function () {
   'use strict';
@@ -32,7 +33,8 @@
     infobox: 'l',  /* the portrait at the top of an article */
     preview: 'm',  /* the picture in a hover preview card */
     codes: 't',    /* the small pictures on the image codes page */
-    article: 'h'   /* a picture placed inside an article with <img data-image="code"> */
+    article: 'h',  /* a picture placed inside an article with <img data-image="code"> */
+    talk: 't'      /* the round portraits beside messages in a Talk chatroom */
   };
 
   /* PARTY GLOWS: any of these words outside quotes glows in its party's
@@ -40,8 +42,8 @@
      "Resistance", "Poo", "Liberation" or "Independent" on their own are too
      common to match, so wrap those by hand: <span class="or">Original</span>. */
   var PARTIES = [
-    { cls: 'or', terms: ['Original Party', 'Tomato Party', 'Ories', 'Orie', 'Orie Apparatus'] },
-    { cls: 'pv', terms: ['Preservation Party', 'Preservates', 'Preservate', 'Preservate Apparatus'] },
+    { cls: 'or', terms: ['Original Party', 'Tomato Party', 'Ories', 'Orie'] },
+    { cls: 'pv', terms: ['Preservation Party', 'Preservates', 'Preservate'] },
     { cls: 'ds', terms: ['Disconic Party', 'Disco Party', 'Disconics', 'Disconic', 'Disco'] },
     { cls: 'al', terms: ['Alienova Party', 'Alienova', 'Revamp Party'] },
     { cls: 'hm', terms: ['Home Party'] },
@@ -68,6 +70,11 @@
     { cls: 'ug', name: /^Grass/, page: 'Grass_Party.html' }
   ];
 
+  /* TALK FILES: the chat behind a page's Talk tab lives in a file of its own, named with this
+     prefix and the page's file name: Talk_Liver.html for Liver.html, Talk_index.html for the
+     main page. See TALK below. */
+  var TALK_PREFIX = 'Talk_';
+
   var doc = document, body = doc.body;
   var each = function (list, fn) { Array.prototype.forEach.call(list, fn); };
   function el(tag, cls, html) {
@@ -75,6 +82,16 @@
     if (cls) e.className = cls;
     if (html != null) e.innerHTML = html;
     return e;
+  }
+
+  /* this page's file name without .html ("Liver"; "index" for the main page). Cloudflare drops
+     .html from addresses, so /Liver and /Liver.html both give "Liver". */
+  var PAGE_KEY = decodeURIComponent(location.pathname.split('/').pop() || '').replace(/\.html?$/i, '') || 'index';
+
+  /* a talk file opened directly sends the reader to its page, with the Talk tab open */
+  if (PAGE_KEY.indexOf(TALK_PREFIX) === 0 && body.querySelector('.chat')) {
+    location.replace(PAGE_KEY.slice(TALK_PREFIX.length) + '.html#talk');
+    return;
   }
 
   /* start connecting to the picture host straight away, while the image code list is still being read */
@@ -97,14 +114,21 @@
 
   var tab = body.getAttribute('data-tab') || 'Article';
   var edited = body.getAttribute('data-edited');
+  /* every page has a working Talk tab except the "Page not found" page (data-tab="Special page");
+     data-no-talk on a page's <body> switches it off for that page too */
+  var talkOn = tab !== 'Special page' && !body.hasAttribute('data-no-talk');
   var fit = el('div'); fit.id = 'fit';
   var stage = el('div'); stage.id = 'stage';
   stage.innerHTML =
     '<header class="top"><a class="brand" href="index.html" aria-label="Home">' +
       '<span class="logo">' + LOGO + '</span>' +
       '<div><span class="brand-name">' + SITE.name + '</span><span class="brand-sub">' + SITE.tagline + '</span></div></a></header>' +
-    '<nav class="tabs" aria-label="Page views"><div><span class="tab on">' + tab + '</span><span class="tab">Talk</span></div>' +
-      '<div><span class="tab on">Read</span><span class="tab">View history</span></div></nav>' +
+    '<nav class="tabs" aria-label="Page views"><div>' +
+      (talkOn
+        ? '<a class="tab on" href="#" data-view="article">' + tab + '</a>' +
+          '<a class="tab" href="#talk" data-view="talk">Talk<span class="tab-count" hidden></span></a>'
+        : '<span class="tab on">' + tab + '</span><span class="tab">Talk</span>') +
+      '</div><div><span class="tab on">Read</span><span class="tab">View history</span></div></nav>' +
     '<div class="head"><h1 class="title">' + titleHTML + '</h1></div>' +
     '<p class="from">From the <span class="redact" aria-label="redacted"></span>, ' + SITE.tagline + '</p>';
   stage.appendChild(main);
@@ -203,7 +227,7 @@
         var head = el('div', 'ib-head');
         while (c.firstChild) head.appendChild(c.firstChild);
         if (!c.classList.contains('plain')) {
-          /* a leading ordinal ("10th", "2nd & 4th") stays white; the role name is link-coloured, up to any line break */
+          /* a leading ordinal ("10th", "2nd & 4th") stays white; the office name is link-coloured, up to any line break */
           var start = head.firstChild;
           if (start && start.nodeType === 3) {
             var m = start.nodeValue.match(ORDINAL);
@@ -216,7 +240,7 @@
         box.replaceChild(head, c);
       } else if (c.tagName === 'P' && c.classList.contains('term')) {
         var term = el('div', 'ib-in', '<b></b>');
-        term.firstChild.textContent = c.getAttribute('data-label') || 'Tenure';
+        term.firstChild.textContent = c.getAttribute('data-label') || 'In office';
         while (c.firstChild) term.appendChild(c.firstChild);
         box.replaceChild(term, c);
       } else if (c.tagName === 'P' && c.classList.contains('band')) {
@@ -255,7 +279,7 @@
     img.src = sources[0];
   }
 
-  /* ---------- reading other pages of the wiki (for image codes and page previews) ---------- */
+  /* ---------- reading other pages of the wiki (for image codes, page previews and talk files) ---------- */
   var canFetch = !!(window.fetch && window.DOMParser);
   function fetchPage(url) {
     return fetch(url, { credentials: 'same-origin' })
@@ -315,7 +339,7 @@
 
   /* ---------- succession box: <table class="succession"> ---------- */
   each(main.querySelectorAll('table.succession'), function (t) {
-    var box = el('div', 'succ'); box.setAttribute('role', 'table'); box.setAttribute('aria-label', 'Roles held');
+    var box = el('div', 'succ'); box.setAttribute('role', 'table'); box.setAttribute('aria-label', 'Offices held');
     each(t.querySelectorAll('tr'), function (tr) {
       var c = tr.children, row = el('div', 'succ-row'); row.setAttribute('role', 'row');
       var before = el('div', null, '<small>Preceded by</small>'), mid = el('div', 'mid'), after = el('div', null, '<small>Succeeded by</small>');
@@ -494,6 +518,193 @@
     }
   });
 
+  /* ================================================================
+     TALK: the Talk tab on every page opens a chatroom of what Ninzards
+     have said about the page, laid out like a Discord channel. Nothing
+     goes into the article: the messages live in Talk_<Page>.html
+     (Talk_Liver.html for Liver.html), read from the site when the page
+     opens. A page without a talk file opens an empty room. The Talk tab's
+     address is the page's own with #talk on the end (Liver#talk).
+
+     A talk file is a short page whose <ol class="chat"> holds one <li>
+     per message, in order:
+       <li data-who="PluPlu" data-time="2:14 AM" data-party="pv">text</li>
+         data-who    who said it (their portrait comes from their image code,
+                     and their name links to their page)
+         data-time   the time shown beside the name (any text)
+         data-party  optional: the name is shown in that party's colour (or, pv, …)
+         data-image  optional: an image code, when it isn't the name's own code
+         data-reply  optional: "Name|the words being replied to"
+         data-react  optional: reactions, split by | ("😭 9|💎 3")
+       <li class="day">October 17, 2026</li>   a date divider
+       <li class="sys">text</li>               a notice (joins, pins)
+     An optional <p class="topic"> becomes the channel's topic. In a message,
+     @Name becomes a mention that links to Name.html (write @Al_Commando for
+     two-word names); a message that mentions the page's subject is highlighted.
+     ================================================================ */
+  var titleEl = stage.querySelector('.title');
+  var tabArticle = stage.querySelector('.tabs [data-view="article"]');
+  var tabTalk = stage.querySelector('.tabs [data-view="talk"]');
+  var baseTitle = doc.title;
+  var talkSec = null, talkData = null;
+  var channel = (PAGE_KEY === 'index' ? 'main page' : PAGE_KEY).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  function nameKey(s) { return String(s || '').trim().toLowerCase().replace(/[\s_]+/g, ' '); }
+  function pageFor(name) { return name.trim().replace(/\s+/g, '_') + '.html'; }
+
+  /* read the talk file once; resolves to its .chat list, or null when the page has none */
+  function readTalk() {
+    if (!talkData) {
+      talkData = !canFetch ? Promise.resolve(null)
+        : fetchPage(new URL(TALK_PREFIX + PAGE_KEY + '.html', location.href).href)
+            .then(function (html) {
+              var d = new DOMParser().parseFromString(html, 'text/html'), list = d.querySelector('.chat');
+              if (!list) return null;
+              var topic = d.querySelector('.topic');
+              return { list: list, topic: topic ? topic.innerHTML : '', count: list.querySelectorAll('li[data-who]').length };
+            })
+            .catch(function () { return null; });
+    }
+    return talkData;
+  }
+
+  /* a round portrait: the message's data-image, else the name as an image code
+     (PluPlu → pluplu; Al Commando → alcommando or al_commando), else its first letter */
+  function talkPortrait(pic, who, code) {
+    var base = nameKey(who), tries = code ? [code.trim().toLowerCase()] : [];
+    tries.push(base.replace(/[^a-z0-9]+/g, ''), base.replace(/[^a-z0-9]+/g, '_'));
+    imageCodes().then(function (map) {
+      var url = null;
+      for (var i = 0; i < tries.length && !url; i++) url = map[tries[i]] || null;
+      loadImage(pic.querySelector('img'), url, pic, PICTURE_SIZE.talk, 'now');
+    });
+  }
+
+  /* @Name → a mention; a mention of the page's subject (or @everyone) highlights its message */
+  function mentions(text) {
+    var w = doc.createTreeWalker(text, NodeFilter.SHOW_TEXT, null), list = [], n;
+    while ((n = w.nextNode())) if (/@[A-Za-z0-9_]/.test(n.nodeValue) && !n.parentNode.closest('a')) list.push(n);
+    list.forEach(function (node) {
+      var parts = node.nodeValue.split(/@([A-Za-z0-9_]+)/), frag = doc.createDocumentFragment();
+      parts.forEach(function (p, i) {
+        if (!(i % 2)) { if (p) frag.appendChild(doc.createTextNode(p)); return; }
+        var everyone = /^(everyone|here)$/i.test(p), m = el(everyone ? 'span' : 'a', 'mention');
+        m.textContent = '@' + p.replace(/_/g, ' ');
+        if (!everyone) m.setAttribute('href', p + '.html');
+        if (everyone || nameKey(p) === nameKey(titleText)) text.closest('.msg').classList.add('ping');
+        frag.appendChild(m);
+      });
+      node.parentNode.replaceChild(frag, node);
+    });
+  }
+
+  function fillTalk(data) {
+    var log = talkSec.querySelector('.talk-log'), people = {}, count = 0, last = null;
+    if (data) {
+      each(Array.prototype.slice.call(data.list.children), function (li) {
+        if (li.tagName !== 'LI') return;
+        if (li.classList.contains('day')) {
+          log.appendChild(el('li', 'talk-day', '<span></span>')).firstChild.textContent = li.textContent.trim();
+          last = null; return;
+        }
+        if (li.classList.contains('sys')) {
+          log.appendChild(el('li', 'talk-sys', '<span>' + li.innerHTML + '</span>'));
+          last = null; return;
+        }
+        var who = (li.getAttribute('data-who') || '').trim();
+        if (!who) return;
+        count++; people[nameKey(who)] = true;
+        var reply = li.getAttribute('data-reply');
+        var cont = !reply && last === nameKey(who);
+        var m = el('li', 'msg' + (cont ? ' cont' : ''));
+        if (reply) {
+          var bar = reply.indexOf('|'), r = el('div', 'msg-reply', '<b></b><span></span>');
+          r.firstChild.textContent = '@' + (bar < 0 ? reply : reply.slice(0, bar)).trim();
+          r.lastChild.textContent = bar < 0 ? '' : reply.slice(bar + 1).trim();
+          m.appendChild(r);
+        }
+        var pic = el('span', 'msg-pic', '<img alt="" referrerpolicy="no-referrer"><b aria-hidden="true"></b>');
+        pic.lastChild.textContent = who.charAt(0).toUpperCase();
+        m.appendChild(pic);
+        var bodyEl = el('div', 'msg-body'), head = el('div', 'msg-head', '<a class="msg-who"></a>'), name = head.firstChild;
+        name.textContent = who;
+        name.setAttribute('href', pageFor(who));
+        if (li.getAttribute('data-party')) name.classList.add(li.getAttribute('data-party'));
+        if (li.getAttribute('data-time')) head.appendChild(el('time')).textContent = li.getAttribute('data-time');
+        bodyEl.appendChild(head);
+        var text = el('div', 'msg-text', li.innerHTML);
+        bodyEl.appendChild(text);
+        if (li.getAttribute('data-react')) {
+          var rx = el('div', 'msg-react');
+          li.getAttribute('data-react').split('|').forEach(function (x) { if (x.trim()) rx.appendChild(el('span')).textContent = x.trim(); });
+          bodyEl.appendChild(rx);
+        }
+        m.appendChild(bodyEl);
+        log.appendChild(m);
+        mentions(text);
+        if (!cont) talkPortrait(pic, who, li.getAttribute('data-image'));
+        last = nameKey(who);
+      });
+      if (data.topic) talkSec.querySelector('.talk-topic').innerHTML = data.topic;
+    }
+    if (!count) log.appendChild(el('li', 'talk-quiet')).textContent = 'No one has said anything about ' + titleText + ' yet.';
+    each(log.querySelectorAll('.msg-text img[data-image]'), function (img) { showImage(img, img.getAttribute('data-image'), img, PICTURE_SIZE.article); });
+    glow(log);
+    var n = Object.keys(people).length, online = talkSec.querySelector('.talk-online');
+    online.classList.toggle('empty', !n);
+    online.lastChild.textContent = n ? n + (n === 1 ? ' Ninzard' : ' Ninzards') + ' here' : 'quiet';
+  }
+
+  function makeTalk() {
+    talkSec = el('section', 'talk');
+    talkSec.setAttribute('aria-label', 'Talk');
+    talkSec.hidden = true;
+    talkSec.innerHTML =
+      '<div class="talk-bar"><span class="talk-hash" aria-hidden="true">#</span><b class="talk-name"></b>' +
+        '<span class="talk-topic"></span><span class="talk-online"><i aria-hidden="true"></i><span>connecting…</span></span></div>' +
+      '<ol class="talk-log"><li class="talk-start"><span class="talk-big" aria-hidden="true">#</span><b></b><p></p></li></ol>' +
+      '<div class="talk-input"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 7V5a4 4 0 1 1 8 0v2h1a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1zm2 0h4V5a2 2 0 1 0-4 0z"/></svg>' +
+        '<span>You do not have permission to send messages in this channel.</span></div>';
+    talkSec.querySelector('.talk-name').textContent = channel;
+    talkSec.querySelector('.talk-topic').textContent = 'What Ninzards are saying about ' + titleText + '.';
+    talkSec.querySelector('.talk-start b').textContent = 'Welcome to #' + channel + '!';
+    talkSec.querySelector('.talk-start p').textContent = 'This is the start of the #' + channel + ' channel, where Ninzards talk about ' + titleText + '.';
+    stage.insertBefore(talkSec, stage.querySelector('.foot'));
+    readTalk().then(fillTalk);
+  }
+
+  /* the count of messages on the Talk tab, once the talk file has been read */
+  function showCount(data) {
+    var badge = tabTalk && tabTalk.querySelector('.tab-count');
+    if (!badge || !data || !data.count) return;
+    badge.textContent = data.count > 99 ? '99+' : data.count;
+    badge.hidden = false;
+    tabTalk.setAttribute('aria-label', 'Talk, ' + data.count + ' messages');
+  }
+
+  /* Article or Talk, by the address: #talk shows the chatroom, anything else the article */
+  function showView() {
+    var talk = location.hash === '#talk';
+    if (talk && !talkSec) makeTalk();
+    main.hidden = talk;
+    if (talkSec) talkSec.hidden = !talk;
+    tabArticle.classList.toggle('on', !talk);
+    tabTalk.classList.toggle('on', talk);
+    if (talk) tabTalk.setAttribute('aria-current', 'page'); else tabTalk.removeAttribute('aria-current');
+    titleEl.innerHTML = (talk ? '<span class="talk-ns">Talk:</span>' : '') + titleHTML;
+    doc.title = talk ? 'Talk:' + baseTitle : baseTitle;
+  }
+  if (talkOn) {
+    showView();
+    window.addEventListener('hashchange', function () {
+      var wasArticle = !main.hidden;
+      showView();
+      if (wasArticle && main.hidden) window.scrollTo(0, 0);
+    });
+    /* look for the talk file soon after the page has loaded, to put the count on the tab */
+    var countSoon = function () { setTimeout(function () { readTalk().then(showCount); }, 400); };
+    if (doc.readyState === 'complete') countSoon(); else window.addEventListener('load', countSoon);
+  }
+
   /* ---------- scale the whole page so the layout never changes between phone and desktop ---------- */
   var W = 900;
   function scale() {
@@ -532,7 +743,7 @@
     var d = new DOMParser().parseFromString(html, 'text/html');
     var head = d.querySelector('h1');
     var box = d.querySelector('aside.infobox');
-    var role = box && Array.prototype.filter.call(box.querySelectorAll('h3'), function (h) { return !h.classList.contains('plain'); })[0];
+    var office = box && Array.prototype.filter.call(box.querySelectorAll('h3'), function (h) { return !h.classList.contains('plain'); })[0];
     var lead = Array.prototype.filter.call(d.querySelectorAll('p'), function (p) {
       return p.textContent.trim() && !p.closest('aside, blockquote, nav, table, footer, .hatnote, .note, .toc') && !p.classList.contains('note');
     })[0];
@@ -546,7 +757,7 @@
     var name = (box && box.getAttribute('data-name')) || (head ? head.textContent.trim() : d.title);
     return {
       title: head ? head.textContent.trim() : d.title,
-      desc: role ? role.textContent.replace(/\s+/g, ' ').trim() : '',
+      desc: office ? office.textContent.replace(/\s+/g, ' ').trim() : '',
       image: box && box.getAttribute('data-image'),
       letter: (name || '?').charAt(0).toUpperCase(),
       extract: extract.innerHTML
