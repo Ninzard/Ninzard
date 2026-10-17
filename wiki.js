@@ -887,13 +887,26 @@
     titleEl.innerHTML = (talk ? '<span class="talk-ns">Talk:</span>' : '') + titleHTML;
     doc.title = talk ? 'Talk:' + baseTitle : baseTitle;
   }
+  /* the article tab goes back to the page's plain address (Liver, not Liver#) */
+  function toArticle(e) {
+    if (e.button || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    if (!location.hash) return;
+    history.pushState(null, '', location.pathname + location.search);
+    showView();
+    window.scrollTo(0, 0);
+  }
+  function onRoute() {
+    var wasArticle = !main.hidden;
+    showView();
+    if (wasArticle && main.hidden) window.scrollTo(0, 0);
+  }
   if (talkOn) {
     showView();
-    window.addEventListener('hashchange', function () {
-      var wasArticle = !main.hidden;
-      showView();
-      if (wasArticle && main.hidden) window.scrollTo(0, 0);
-    });
+    tabArticle.setAttribute('href', location.pathname + location.search);
+    tabArticle.addEventListener('click', toArticle);
+    window.addEventListener('hashchange', onRoute);
+    window.addEventListener('popstate', onRoute);
     /* look for the talk file soon after the page has loaded, to put the count on the tab */
     var countSoon = function () { setTimeout(function () { readTalk().then(showCount); }, 400); };
     if (doc.readyState === 'complete') countSoon(); else window.addEventListener('load', countSoon);
