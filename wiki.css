@@ -72,6 +72,9 @@
   /* a Ninzard's name: its soft glow, and the glow when hovered (see "Names" near the end of this file) */
   --name-glow:0 0 7px rgba(195,162,255,.5);
   --name-glow-hover:0 0 10px rgba(205,178,255,.9);
+  /* the portal bar's gold (see "Portal bar" at the end of this file) */
+  --portal:#f1cf83;
+  --portal-glow:0 0 8px rgba(241,207,131,.4);
   /* the Talk chatroom (see "Talk" at the end of this file) */
   --talk-online:#43b581;                /* the green "online" dot */
   --talk-ping:rgba(255,143,180,.075);   /* a message that mentions the page's subject */
@@ -517,3 +520,23 @@ a.mention:hover{background:rgba(195,162,255,.32);text-decoration:none}
 /* the message box at the bottom, locked: the wiki is read-only */
 .talk-input{display:flex;align-items:center;gap:11px;margin:0 18px 18px;padding:13px 16px;border:1px solid var(--line);border-radius:8px;background:rgba(11,6,18,.55);color:var(--mute);font-size:14.5px}
 .talk-input svg{display:block;flex:none;width:16px;height:16px;fill:currentColor}
+
+/* ================================================================
+   Portal bar: wiki.js adds it just above the categories on the page of
+   every Ninzard a portal lists among its members (see PORTAL BAR in
+   wiki.js): "Portal: [emblem] Christianity". The gold is --portal in
+   the COLOURS block; the stripe takes the colours of stained glass.
+   ================================================================ */
+.portal-bar{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:16px;padding:8px 14px 8px 16px;
+  border:1px solid var(--line);font-size:14px;line-height:1.4;
+  background:radial-gradient(300px 90px at 0 50%,rgba(241,207,131,.1),transparent 70%),var(--deck)}
+.portal-bar::before{content:"";position:absolute;left:-1px;top:-1px;bottom:-1px;width:3px;
+  background:linear-gradient(180deg,#f1cf83,#ff5d78 35%,#5b8cff 68%,#3fd39b);box-shadow:0 0 10px rgba(241,207,131,.4)}
+.pb-k{font:600 14px/1 var(--disp)}
+.pb-k::after{content:":"}
+a.pb-link{display:inline-flex;align-items:center;gap:9px;font:600 14.5px/1.2 var(--disp);color:var(--portal);text-shadow:var(--portal-glow)}
+a.pb-link:hover{color:#fff1cc;text-decoration:none}
+a.pb-link:hover .pb-t{text-decoration:underline;text-underline-offset:3px}
+.pb-ic{display:inline-grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;
+  font:700 13px/1 var(--disp);color:var(--portal);filter:drop-shadow(0 0 5px rgba(241,207,131,.45)) drop-shadow(0 0 10px rgba(176,124,255,.28))}
+.pb-ic svg{display:block;width:100%;height:100%}

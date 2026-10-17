@@ -6,7 +6,8 @@
    mention to its page), works out ages, links every Ninzard's name
    to their page with a small portrait, fills shared navboxes, opens
    the Talk chatroom behind every page's Talk tab, picks a random
-   page, and shows page previews when you hover a link to another page.
+   page, adds a portal bar to the pages of a portal's members, and shows
+   page previews when you hover a link to another page.
    ================================================================ */
 (function () {
   'use strict';
@@ -21,7 +22,10 @@
     gallery: 'Faces_of_Ninzard.html',
     names: 'Names.html',
     /* NAVBOXES: the shared navboxes a page can summon with <nav class="navbox" data-box="…"></nav> */
-    navboxes: 'Navboxes.html'
+    navboxes: 'Navboxes.html',
+    /* PORTALS: every portal page. A portal lists its members in <ul data-portal-members> (links to
+       their pages); each member's page then shows "Portal: <name>" above its categories. See PORTAL BAR. */
+    portals: ['Portal_Christianity.html']
   };
 
   /* LOGO: drawn here rather than loaded as a picture, so it always shows. It sits at the top
@@ -683,6 +687,50 @@
 
   /* names are linked once the shared navboxes are in place */
   Promise.all([nameRegistry(), navboxesReady]).then(function (r) { linkNames(main, r[0]); });
+
+  /* ---------- PORTAL BAR: "Portal: Christianity" above the categories of every member's page ----------
+     Only the pages of Ninzards (people in the gallery or Names.html) look, and only when the
+     portal lists them among its members (<ul data-portal-members> on the portal page). The bar
+     carries a small copy of the portal's emblem (the element marked data-portal-icon) and the
+     portal's name (its <h1> without "Portal:"). It sits just above the categories, as on Wikipedia. */
+  function portalBar(reg) {
+    if (!reg || !SITE.portals || !SITE.portals.length) return;
+    if (/^portal_/i.test(PAGE_KEY) || tab === 'Special page' || !reg.page[PAGE_KEY.toLowerCase()]) return;
+    Promise.all(SITE.portals.map(function (page, n) {
+      return readDoc(page).then(function (d) {
+        if (!d) return null;
+        var member = Array.prototype.some.call(d.querySelectorAll('[data-portal-members] a[href]'), function (a) {
+          return thisPage(a.getAttribute('href') || '');
+        });
+        if (!member) return null;
+        var h = d.querySelector('h1');
+        var name = h ? h.textContent.replace(/^\s*Portal\s*:\s*/i, '').trim() : page.replace(/^Portal_|\.html?$/gi, '').replace(/_/g, ' ');
+        var icon = d.querySelector('[data-portal-icon] svg');
+        /* the emblem's ids are prefixed so two emblems on one page never share them */
+        var svg = icon ? icon.outerHTML.replace(/\bid="([^"]+)"/g, 'id="pb' + n + '-$1"').replace(/url\(#([^)]+)\)/g, 'url(#pb' + n + '-$1)') : '';
+        return { page: page, name: name, svg: svg };
+      });
+    })).then(function (list) {
+      list = list.filter(Boolean);
+      if (!list.length) return;
+      var bar = el('nav', 'portal-bar');
+      bar.setAttribute('aria-label', list.length > 1 ? 'Portals' : 'Portal');
+      bar.appendChild(el('span', 'pb-k')).textContent = list.length > 1 ? 'Portals' : 'Portal';
+      list.forEach(function (p) {
+        var a = el('a', 'pb-link'); a.setAttribute('href', p.page);
+        var ic = el('span', 'pb-ic', p.svg); ic.setAttribute('aria-hidden', 'true');
+        var svg = ic.querySelector('svg');
+        if (svg) { svg.removeAttribute('role'); svg.removeAttribute('aria-label'); svg.setAttribute('focusable', 'false'); }
+        else ic.textContent = p.name.charAt(0);
+        a.appendChild(ic);
+        a.appendChild(el('span', 'pb-t')).textContent = p.name;
+        bar.appendChild(a);
+      });
+      var cats = main.querySelector('.cats');
+      if (cats) cats.parentNode.insertBefore(bar, cats); else main.appendChild(bar);
+    });
+  }
+  nameRegistry().then(portalBar);
 
   /* ---------- the Random page tab: a random Ninzard from the gallery ---------- */
   var tabRandom = stage.querySelector('.tabs [data-view="random"]');
