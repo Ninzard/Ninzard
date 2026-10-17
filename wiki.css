@@ -69,6 +69,9 @@
     repeating-linear-gradient(180deg,var(--pic-lines) 0 1px,transparent 1px 3px) content-box,
     linear-gradient(180deg,var(--pic-tint-top),var(--pic-tint-bottom)) content-box,
     radial-gradient(ellipse at 50% 42%,transparent 55%,var(--pic-vignette)) content-box;
+  /* a Ninzard's name: its soft glow, and the glow when hovered (see "Names" near the end of this file) */
+  --name-glow:0 0 7px rgba(195,162,255,.5);
+  --name-glow-hover:0 0 10px rgba(205,178,255,.9);
   /* the Talk chatroom (see "Talk" at the end of this file) */
   --talk-online:#43b581;                /* the green "online" dot */
   --talk-ping:rgba(255,143,180,.075);   /* a message that mentions the page's subject */
@@ -241,7 +244,7 @@ sup.ref{font:500 11px/0 var(--disp);margin-left:1px}
 .tbl tr:last-child td{border-bottom:0}
 .tbl td:first-child{font-family:var(--disp);font-weight:600}
 .won{color:var(--accent)}
-.refs{font-size:14px;line-height:1.55;padding-left:28px;margin:0;columns:2;column-gap:36px}
+.refs{font-size:14px;line-height:1.55;padding-left:28px;margin:0;columns:3;column-gap:30px}
 .refs li{margin-bottom:5px;break-inside:avoid}
 .refs li:target{background:rgba(255,143,180,.13);outline:1px solid rgba(255,143,180,.35)}
 .refs i{color:var(--mute)}
@@ -416,6 +419,27 @@ td.code-pic.fail::after{display:none}
 .el-frame::before,.ez-c-pic::before,.en-pic::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:var(--pic-fx)}
 
 /* ================================================================
+   Names: wiki.js links every mention of a Ninzard to their page, with a
+   soft glow and a tiny round portrait (Imgur's 90px square copy) before
+   the name: <a class="nm"><span class="nm-pic">…</span><span class="nm-t">Name</span></a>.
+   The glow is --name-glow in the COLOURS block.
+   ================================================================ */
+a.nm{white-space:nowrap;text-decoration:none!important}
+a.nm .nm-t{text-shadow:var(--name-glow);transition:text-shadow .2s ease}
+a.nm:hover .nm-t{text-shadow:var(--name-glow-hover);text-decoration:underline;text-underline-offset:3px}
+.nm-pic{position:relative;display:inline-block;width:1.08em;height:1.08em;margin:0 .28em 0 .04em;vertical-align:-.17em;border-radius:50%;overflow:hidden;
+  background:#0a0510;box-shadow:0 0 0 1px rgba(195,162,255,.42),0 0 6px rgba(195,162,255,.38)}
+.nm-pic img{display:block;width:100%;height:100%;object-fit:cover}
+.nm-pic b{display:none;position:absolute;inset:0;place-items:center;font:700 .62em/1 var(--disp);color:var(--accent);
+  background:radial-gradient(circle at 50% 42%,rgba(255,143,180,.25),transparent 70%),#0a0510}
+.nm-pic.fail img{display:none}
+.nm-pic.fail b{display:grid}
+.nm-pic::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;background:var(--pic-fx)}
+/* a dialogue's speaker keeps its rose colour; a quote's attribution its white */
+.qbox.dialogue p>b:first-child a.nm{color:inherit}
+.qbox footer b a.nm,.hero-by b a.nm{color:var(--ink)}
+
+/* ================================================================
    Talk: the chatroom behind every page's Talk tab. wiki.js builds it
    from Talk_<Page>.html (Talk_Liver.html for Liver.html), so no article
    is ever edited for it. It looks like a Ninzard Discord channel:
@@ -441,7 +465,6 @@ a.tab:hover{color:var(--ink)}
 .talk-topic{flex:1;min-width:0;margin-left:4px;padding-left:12px;border-left:1px solid var(--line);font:400 13.5px/1.35 var(--text);color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .talk-online{display:flex;align-items:center;gap:7px;font:500 12px/1 var(--disp);color:var(--mute);white-space:nowrap}
 .talk-online i{width:8px;height:8px;border-radius:50%;background:var(--talk-online);box-shadow:0 0 0 3px rgba(67,181,129,.16),0 0 8px rgba(67,181,129,.65)}
-.talk-online.empty i{background:var(--mute);box-shadow:none;opacity:.6}
 /* the log */
 .talk-log{list-style:none;margin:0;padding:0 0 18px}
 .talk-start{padding:26px 20px 18px;margin-bottom:6px;border-bottom:1px solid rgba(58,36,82,.7)}

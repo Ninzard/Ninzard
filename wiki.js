@@ -3,9 +3,10 @@
    at the end of its <body>. It builds the header and footer, lays
    out the infobox, opening quote, contents box, quote boxes, tables
    and citations, makes party names glow (linking each party's first
-   mention to its page), works out ages, opens the Talk chatroom
-   behind every page's Talk tab, and shows page previews when you
-   hover a link to another page.
+   mention to its page), works out ages, links every Ninzard's name
+   to their page with a small portrait, fills shared navboxes, opens
+   the Talk chatroom behind every page's Talk tab, picks a random
+   page, and shows page previews when you hover a link to another page.
    ================================================================ */
 (function () {
   'use strict';
@@ -15,7 +16,12 @@
     tagline: "the community's encyclopedia",
     footerNote: 'Signal source withheld.',
     /* IMAGE CODES: the page that lists every image code and its link */
-    imageCodes: 'Image_codes.html'
+    imageCodes: 'Image_codes.html',
+    /* NAMES: everyone in the gallery, plus the extra names, other names and non-names on the names page */
+    gallery: 'Faces_of_Ninzard.html',
+    names: 'Names.html',
+    /* NAVBOXES: the shared navboxes a page can summon with <nav class="navbox" data-box="…"></nav> */
+    navboxes: 'Navboxes.html'
   };
 
   /* LOGO: drawn here rather than loaded as a picture, so it always shows. It sits at the top
@@ -34,7 +40,8 @@
     preview: 'm',  /* the picture in a hover preview card */
     codes: 't',    /* the small pictures on the image codes page */
     article: 'h',  /* a picture placed inside an article with <img data-image="code"> */
-    talk: 't'      /* the round portraits beside messages in a Talk chatroom */
+    talk: 't',     /* the round portraits beside messages in a Talk chatroom */
+    name: 's'      /* the tiny round portrait before every Ninzard's name (s = a 90px square) */
   };
 
   /* PARTY GLOWS: any of these words outside quotes glows in its party's
@@ -74,6 +81,11 @@
      prefix and the page's file name: Talk_Liver.html for Liver.html, Talk_index.html for the
      main page. See TALK below. */
   var TALK_PREFIX = 'Talk_';
+
+  /* ONLINE: the "N Ninzards here" count in a talk room is not real: it drifts up and down at random
+     within a believable range, every few seconds, and is far lower on Sundays (Pacific time).
+     Change the ranges here. */
+  var ONLINE = { weekday: [26, 84], sunday: [2, 9], every: [6000, 14000] };
 
   var doc = document, body = doc.body;
   var each = function (list, fn) { Array.prototype.forEach.call(list, fn); };
@@ -128,7 +140,7 @@
         ? '<a class="tab on" href="#" data-view="article">' + tab + '</a>' +
           '<a class="tab" href="#talk" data-view="talk">Talk<span class="tab-count" hidden></span></a>'
         : '<span class="tab on">' + tab + '</span><span class="tab">Talk</span>') +
-      '</div><div><span class="tab on">Read</span><span class="tab">View history</span></div></nav>' +
+      '</div><div><span class="tab on">Read</span><a class="tab" href="#random" data-view="random">Random page</a></div></nav>' +
     '<div class="head"><h1 class="title">' + titleHTML + '</h1></div>' +
     '<p class="from">From the <span class="redact" aria-label="redacted"></span>, ' + SITE.tagline + '</p>';
   stage.appendChild(main);
@@ -258,7 +270,7 @@
      proxy (asked to shrink it too), then the placeholder letter. `when` is 'first' for the picture
      that matters most on the page, 'now' to load at once, or left out to wait until the reader
      scrolls near the picture. */
-  var PX = { t: 160, m: 320, l: 640, h: 1024 };
+  var PX = { s: 90, t: 160, m: 320, l: 640, h: 1024 };
   function smallerCopy(url, size) {
     var m = PX[size] && url.match(/^https?:\/\/i\.imgur\.com\/([A-Za-z0-9]{7}|[A-Za-z0-9]{5})\.(jpe?g|png)(?:[?#].*)?$/i);
     return m ? 'https://i.imgur.com/' + m[1] + size + '.' + m[2].toLowerCase().replace('jpeg', 'jpg') : null;
@@ -519,6 +531,170 @@
   });
 
   /* ================================================================
+     NAMES: every mention of a Ninzard links to their page by itself,
+     glowing softly, with a tiny round portrait before the name. Nobody
+     writes these links by hand. The names come from two pages:
+       Faces_of_Ninzard.html  every gallery tile (name, page, image code)
+       Names.html             <ul class="names">: Ninzards without a portrait,
+                              and other names for someone (Cat → Catx3.html):
+                              <li data-page="Catx3.html">Cat</li>
+                              (data-image="code" sets a portrait if needed);
+                              <ul class="not-names">: phrases that contain a
+                              name but aren't about the person (Cat Files).
+     Names are matched exactly, capitals included, as whole words. They are
+     linked in the text, infoboxes, tables, navboxes, succession boxes, quote
+     attributions and dialogue speakers, but not inside quoted words, headings,
+     the contents box, hatnotes, references or categories, and a page never
+     links its own subject. Links written by hand to a person's page get the
+     same portrait and glow.
+     ================================================================ */
+  function nameKey(s) { return String(s || '').trim().toLowerCase().replace(/[\s_]+/g, ' '); }
+  function pageFor(name) { return name.trim().replace(/\s+/g, '_') + '.html'; }
+  function fileOf(href) { var m = (href || '').match(/^(?:\.\/|\/)?([^\/?#]+?)(?:\.html?)?(?:[?#].*)?$/i); return m ? m[1].toLowerCase() : ''; }
+  function readDoc(page) {
+    return fetchPage(new URL(page, location.href).href)
+      .then(function (html) { return new DOMParser().parseFromString(html, 'text/html'); })
+      .catch(function () { return null; });
+  }
+  var registry = null;
+  function nameRegistry() {
+    if (!registry) {
+      registry = !canFetch ? Promise.resolve(null) : Promise.all([readDoc(SITE.gallery), readDoc(SITE.names)]).then(function (docs) {
+        var reg = { list: [], by: {}, page: {}, not: [], random: [] };
+        function add(name, page, code) {
+          name = (name || '').replace(/\s+/g, ' ').trim();
+          if (!name || reg.by[name]) return;
+          var e = { name: name, page: page || pageFor(name), code: code || '' };
+          reg.by[name] = e; reg.list.push(e);
+          if (!reg.page[fileOf(e.page)]) reg.page[fileOf(e.page)] = e;
+        }
+        if (docs[0]) each(docs[0].querySelectorAll('.faces .face'), function (f) {
+          var n = f.querySelector('.face-name'), img = f.querySelector('img[data-image]');
+          if (!n) return;
+          add(n.textContent, f.getAttribute('href'), img && img.getAttribute('data-image'));
+          if (f.getAttribute('href')) reg.random.push(f.getAttribute('href'));
+        });
+        if (docs[1]) {
+          each(docs[1].querySelectorAll('ul.names > li'), function (li) {
+            add(li.textContent, li.getAttribute('data-page'), li.getAttribute('data-image'));
+          });
+          each(docs[1].querySelectorAll('ul.not-names > li'), function (li) {
+            var t = li.textContent.replace(/\s+/g, ' ').trim(); if (t) reg.not.push(t);
+          });
+        }
+        /* another name for someone shares their portrait */
+        reg.list.forEach(function (e) { if (!e.code) { var o = reg.page[fileOf(e.page)]; if (o && o.code) e.code = o.code; } });
+        return reg;
+      });
+    }
+    return registry;
+  }
+
+  /* the tiny portrait: the person's image code, else their name as a code, else their first letter */
+  function namePortrait(pic, e) {
+    var base = nameKey(e.name), tries = e.code ? [e.code.trim().toLowerCase()] : [];
+    tries.push(base.replace(/[^a-z0-9]+/g, ''), base.replace(/[^a-z0-9]+/g, '_'));
+    imageCodes().then(function (map) {
+      var url = null;
+      for (var i = 0; i < tries.length && !url; i++) url = map[tries[i]] || null;
+      loadImage(pic.querySelector('img'), url, pic, PICTURE_SIZE.name);
+    });
+  }
+  function nameLink(e, a) {
+    a = a || el('a');
+    if (!a.getAttribute('href')) a.setAttribute('href', e.page);
+    a.classList.add('nm');
+    var label = el('span', 'nm-t');
+    if (a.firstChild) { while (a.firstChild) label.appendChild(a.firstChild); } else label.textContent = e.name;
+    var pic = el('span', 'nm-pic', '<img alt="" referrerpolicy="no-referrer"><b></b>');
+    pic.setAttribute('aria-hidden', 'true');
+    pic.lastChild.textContent = e.name.charAt(0).toUpperCase();
+    a.appendChild(pic); a.appendChild(label);
+    namePortrait(pic, e);
+    return a;
+  }
+
+  var NO_NAME = 'h1, h2, h3, h4, h5, h6, .toc, .hatnote, .refs, .cats, .note, figcaption, dt, .ib-name, .ib-head, .ib-in, .ib-band, ' +
+    '.navbox-title, li.self, code, pre, script, style, .faces, table.image-codes, .el-cands, .endorse, table.results, .election-map, ' +
+    '.share-chart, .swatch, .nm, .no-name, ' + PARTIES.map(function (p) { return '.' + p.cls; }).join(', ');
+  /* quoted words stay as they were; a quote's attribution and a dialogue's speakers do not */
+  function quoted(node) {
+    return !!node.closest('blockquote') && !node.closest('footer, .hero-by, .dialogue p > b:first-child');
+  }
+  function linkNames(root, reg) {
+    if (!reg || !reg.list.length) return;
+    var self = function (e) { return thisPage(e.page) || e.name === titleText; };
+    /* links already written by hand to a person's page */
+    each(root.querySelectorAll('a[href]'), function (a) {
+      if (a.closest(NO_NAME) || quoted(a)) return;
+      var e = reg.page[fileOf(a.getAttribute('href'))];
+      if (e && !self(e) && !/^[a-z]+:/i.test(a.getAttribute('href'))) nameLink(e, a);
+    });
+    var names = reg.list.filter(function (e) { return !self(e); }).map(function (e) { return e.name; });
+    if (!names.length) return;
+    names.sort(function (a, b) { return b.length - a.length; });
+    var RX = new RegExp('(^|[^A-Za-z0-9_@])(' + names.map(function (n) { return n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|') + ')(?![A-Za-z0-9_])', 'g');
+    var w = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), list = [], t;
+    while ((t = w.nextNode())) {
+      var p = t.parentNode;
+      if (!p.closest || p.closest('a') || p.closest(NO_NAME) || quoted(p)) continue;
+      RX.lastIndex = 0;
+      if (RX.test(t.nodeValue)) list.push(t);
+    }
+    list.forEach(function (node) {
+      var s = node.nodeValue, blocked = [], frag = doc.createDocumentFragment(), last = 0, m;
+      reg.not.forEach(function (phrase) {
+        for (var i = s.indexOf(phrase); i >= 0; i = s.indexOf(phrase, i + 1)) blocked.push([i, i + phrase.length]);
+      });
+      RX.lastIndex = 0;
+      while ((m = RX.exec(s))) {
+        var start = m.index + m[1].length, end = start + m[2].length;
+        if (blocked.some(function (r) { return start < r[1] && end > r[0]; })) continue;
+        if (start > last) frag.appendChild(doc.createTextNode(s.slice(last, start)));
+        frag.appendChild(nameLink(reg.by[m[2]]));
+        last = end;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(doc.createTextNode(s.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
+  }
+
+  /* ---------- shared navboxes: <nav class="navbox" data-box="Four RadicaLs"></nav> ----------
+     The box with that data-title is copied from Navboxes.html, and this page's own entry is marked. */
+  var boxSlots = main.querySelectorAll('nav.navbox[data-box]');
+  var navboxesReady = !boxSlots.length ? Promise.resolve() : readDoc(SITE.navboxes).then(function (d) {
+    each(boxSlots, function (slot) {
+      var want = slot.getAttribute('data-box').replace(/\s+/g, ' ').trim(), src = null;
+      if (d) each(d.querySelectorAll('nav.navbox[data-title]'), function (n) {
+        if (!src && n.getAttribute('data-title').replace(/\s+/g, ' ').trim() === want) src = n;
+      });
+      if (!src || !src.querySelector('ol')) { slot.parentNode.removeChild(slot); return; }
+      var ol = doc.importNode(src.querySelector('ol'), true);
+      each(ol.querySelectorAll('li'), function (li) {
+        var a = li.querySelector('a');
+        if (li.textContent.trim() === titleText || (a && thisPage(a.getAttribute('href') || ''))) { li.className = 'self'; li.textContent = li.textContent.trim(); }
+      });
+      slot.setAttribute('aria-label', want);
+      slot.appendChild(el('div', 'navbox-title')).textContent = want;
+      slot.appendChild(ol);
+    });
+  });
+
+  /* names are linked once the shared navboxes are in place */
+  Promise.all([nameRegistry(), navboxesReady]).then(function (r) { linkNames(main, r[0]); });
+
+  /* ---------- the Random page tab: a random Ninzard from the gallery ---------- */
+  var tabRandom = stage.querySelector('.tabs [data-view="random"]');
+  tabRandom.addEventListener('click', function (e) {
+    e.preventDefault();
+    nameRegistry().then(function (reg) {
+      var pages = (reg ? reg.random : []).filter(function (h) { return !thisPage(h); });
+      location.href = pages.length ? pages[Math.floor(Math.random() * pages.length)] : 'index.html';
+    });
+  });
+
+  /* ================================================================
      TALK: the Talk tab on every page opens a chatroom of what Ninzards
      have said about the page, laid out like a Discord channel. Nothing
      goes into the article: the messages live in Talk_<Page>.html
@@ -548,8 +724,6 @@
   var baseTitle = doc.title;
   var talkSec = null, talkData = null;
   var channel = (PAGE_KEY === 'index' ? 'main page' : PAGE_KEY).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  function nameKey(s) { return String(s || '').trim().toLowerCase().replace(/[\s_]+/g, ' '); }
-  function pageFor(name) { return name.trim().replace(/\s+/g, '_') + '.html'; }
 
   /* read the talk file once; resolves to its .chat list, or null when the page has none */
   function readTalk() {
@@ -649,9 +823,28 @@
     if (!count) log.appendChild(el('li', 'talk-quiet')).textContent = 'No one has said anything about ' + titleText + ' yet.';
     each(log.querySelectorAll('.msg-text img[data-image]'), function (img) { showImage(img, img.getAttribute('data-image'), img, PICTURE_SIZE.article); });
     glow(log);
-    var n = Object.keys(people).length, online = talkSec.querySelector('.talk-online');
-    online.classList.toggle('empty', !n);
-    online.lastChild.textContent = n ? n + (n === 1 ? ' Ninzard' : ' Ninzards') + ' here' : 'quiet';
+  }
+
+  /* the drifting "N Ninzards here" count (see ONLINE) */
+  function startOnline(span) {
+    function rand(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+    function range() {
+      var day = '';
+      try { day = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short' }).format(new Date()); } catch (e) {}
+      if (!day) day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date().getDay()];
+      return day === 'Sun' ? ONLINE.sunday : ONLINE.weekday;
+    }
+    var r = range(), n = rand(r[0], r[1]);
+    function show() { span.textContent = n + (n === 1 ? ' Ninzard' : ' Ninzards') + ' here'; }
+    show();
+    (function drift() {
+      setTimeout(function () {
+        r = range();
+        var step = Math.max(1, Math.round((r[1] - r[0]) / 15));
+        n = Math.min(r[1], Math.max(r[0], n + rand(-step, step)));
+        show(); drift();
+      }, rand(ONLINE.every[0], ONLINE.every[1]));
+    })();
   }
 
   function makeTalk() {
@@ -660,11 +853,12 @@
     talkSec.hidden = true;
     talkSec.innerHTML =
       '<div class="talk-bar"><span class="talk-hash" aria-hidden="true">#</span><b class="talk-name"></b>' +
-        '<span class="talk-topic"></span><span class="talk-online"><i aria-hidden="true"></i><span>connecting…</span></span></div>' +
+        '<span class="talk-topic"></span><span class="talk-online"><i aria-hidden="true"></i><span></span></span></div>' +
       '<ol class="talk-log"><li class="talk-start"><span class="talk-big" aria-hidden="true">#</span><b></b><p></p></li></ol>' +
       '<div class="talk-input"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 7V5a4 4 0 1 1 8 0v2h1a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1zm2 0h4V5a2 2 0 1 0-4 0z"/></svg>' +
         '<span>You do not have permission to send messages in this channel.</span></div>';
     talkSec.querySelector('.talk-name').textContent = channel;
+    startOnline(talkSec.querySelector('.talk-online').lastChild);
     talkSec.querySelector('.talk-topic').textContent = 'What Ninzards are saying about ' + titleText + '.';
     talkSec.querySelector('.talk-start b').textContent = 'Welcome to #' + channel + '!';
     talkSec.querySelector('.talk-start p').textContent = 'This is the start of the #' + channel + ' channel, where Ninzards talk about ' + titleText + '.';

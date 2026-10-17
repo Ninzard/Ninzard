@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Names</title>
+<link rel="stylesheet" href="wiki.css">
+</head>
+<!--
+  NAMES. wiki.js links every mention of a Ninzard to their page, with a tiny portrait, on every page.
+  Everyone in Faces_of_Ninzard.html is included from there automatically. This page adds the rest:
+    <ul class="names">      one <li> per name. The page is the name with spaces as underscores
+                            (Malachi Holloway → Malachi_Holloway.html) unless data-page says otherwise;
+                            the portrait is their image code if they have one (data-image="code").
+    <ul class="not-names">  phrases that contain a name but are not about the person (Cat Files).
+  Names are matched exactly, capitals included, as whole words.
+-->
+<body data-tab="Names" data-edited="17 October 2026">
+
+<h1>Names</h1>
+
+<p>Every Ninzard named on this wiki is linked to their page wherever they are mentioned, with a small portrait beside the name. Everyone in the gallery of portraits is included from there; this page lists everyone else the wiki needs to recognise.</p>
+
+<section>
+<h2 id="without-portraits">Ninzards without a portrait</h2>
+<ul class="names">
+  <li>Arielle</li>
+  <li>Athaniel</li>
+  <li>Cedario</li>
+  <li>Chud Alessandro</li>
+  <li>Daka</li>
+  <li>Declan</li>
+  <li>HazyDaze</li>
+  <li>Highlander</li>
+  <li>Laser</li>
+  <li>Malachi Holloway</li>
+  <li>Matcha</li>
+  <li>Sable</li>
+  <li>Snuck</li>
+  <li>Tiny2</li>
+</ul>
+</section>
+
+<section>
+<h2 id="other-names">Other names</h2>
+<p class="note">Another name the wiki uses for someone; it links to their page and shows their portrait.</p>
+<ul class="names">
+  <li data-page="Catx3.html">Cat</li>
+  <li data-page="Power_of_Greed.html">PoG</li>
+  <li data-page="Sundaze.html">Sundae</li>
+</ul>
+</section>
+
+<section>
+<h2 id="not-names">Not about the person</h2>
+<p class="note">Names inside these phrases are left alone.</p>
+<ul class="not-names">
+  <li>Catx3 Regime</li>
+  <li>Catx3 Dossier</li>
+  <li>Cat Files</li>
+  <li>Cat Capital</li>
+  <li>Cat 2.0</li>
+  <li>Bethany Alliance</li>
+  <li>Edith Gang</li>
+  <li>Draft Spinzle Initiative</li>
+  <li>Aceiron Administration</li>
+  <li>Caleb Treatment</li>
+  <li>Calebros</li>
+  <li>PluPlu Army</li>
+  <li>PluPlu's Army</li>
+</ul>
+</section>
+
+<script src="wiki.js"></script>
+</body>
+</html>
