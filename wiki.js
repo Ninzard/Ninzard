@@ -32,9 +32,12 @@
      of every page and is the browser-tab icon; its glow is --logo-glow in wiki.css. */
   var LOGO = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" aria-hidden="true"><defs><linearGradient id="nz-g" x1="0" y1="0" x2="0" y2="300" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#523c7b"/><stop offset=".33" stop-color="#623869"/><stop offset=".58" stop-color="#70355d"/><stop offset=".8" stop-color="#7e3350"/><stop offset="1" stop-color="#8b3044"/></linearGradient><clipPath id="nz-c"><circle cx="150" cy="150" r="127"/></clipPath></defs><circle cx="150" cy="150" r="148" fill="url(#nz-g)" stroke="#07040a" stroke-width="4"/><circle cx="150" cy="150" r="141" fill="#1c1a1f"/><g clip-path="url(#nz-c)" fill="url(#nz-g)"><rect x="20" y="24.5" width="260" height="18"/><rect x="20" y="64.5" width="260" height="14"/><rect x="20" y="94.5" width="260" height="17"/><rect x="20" y="127.5" width="260" height="24"/><rect x="20" y="162.5" width="260" height="31"/><rect x="20" y="201.5" width="260" height="39"/><rect x="20" y="243.5" width="260" height="40"/></g><path fill="#d4d3d8" d="M137.5 40.5 67.5 117.5 137.5 194.5ZM162.5 95.5 231.5 169.5 162.5 248.5Z"/><path fill="#fff" d="M137.5 51.5 71.5 122.5 137.5 194.5ZM162.5 105.5 228.5 177.5 162.5 248.5Z"/></svg>';
 
-  /* PICTURE SIZES: Imgur keeps smaller copies of every upload, so a page never has to download a
-     full-size file just to show a small portrait. A letter added after the image's ID picks the copy:
-     t = 160px, m = 320px, l = 640px, h = 1024px on the longest side, in the same proportions.
+  /* PICTURE SIZES: a page never downloads a full-size portrait just to show a small one.
+     The portraits live on the site itself, in the Images folder of the repository
+     (https://ninzard.pages.dev/Images/Portrait_Poka.jpg). Each has smaller copies with the same file name
+     in Images/160, Images/320 and Images/640 (the width in pixels); SITE_PICTURES says which letter uses
+     which folder. An Imgur link, if one is ever used, gets Imgur's own smaller copy instead.
+     The letters: s = tiny, t = 160px, m = 320px, l = 640px, h = large.
      The links in Image_codes.html stay the full-size originals and the uploaded files are never changed;
      if a smaller copy can't be had, the full-size picture is used. Change a letter here to make one
      kind of picture sharper (a later letter) or lighter (an earlier one). */
@@ -45,7 +48,15 @@
     codes: 't',    /* the small pictures on the image codes page */
     article: 'h',  /* a picture placed inside an article with <img data-image="code"> */
     talk: 't',     /* the round portraits beside messages in a Talk chatroom */
-    name: 's'      /* the tiny round portrait before every Ninzard's name (s = a 90px square) */
+    name: 's'      /* the tiny round portrait before every Ninzard's name */
+  };
+  /* SITE PICTURES: the folder of the smaller copies for each letter, and the site's address (a link to it
+     is read from whatever address the reader is using). These pictures never go through the outside
+     image proxy: they are private behind Cloudflare Access, like the pages. */
+  var SITE_PICTURES = {
+    folder: 'Images/',
+    sizes: { s: '160', t: '160', m: '320', l: '640', h: '640' },
+    hosts: ['ninzard.pages.dev']
   };
 
   /* PARTY GLOWS: any of these words outside quotes glows in its party's
@@ -108,12 +119,6 @@
   if (PAGE_KEY.indexOf(TALK_PREFIX) === 0 && body.querySelector('.chat')) {
     location.replace(PAGE_KEY.slice(TALK_PREFIX.length) + '.html#talk');
     return;
-  }
-
-  /* start connecting to the picture host straight away, while the image code list is still being read */
-  if (!doc.querySelector('link[rel="preconnect"][href="https://i.imgur.com"]')) {
-    var pre = doc.createElement('link'); pre.rel = 'preconnect'; pre.href = 'https://i.imgur.com';
-    doc.head.appendChild(pre);
   }
 
   /* ---------- page frame: header, tabs, title, footer ---------- */
@@ -270,20 +275,31 @@
     box.insertBefore(top, box.firstChild);
   });
 
-  /* pictures: try Imgur's smaller copy (see PICTURE SIZES), then the full-size link, then an image
-     proxy (asked to shrink it too), then the placeholder letter. `when` is 'first' for the picture
-     that matters most on the page, 'now' to load at once, or left out to wait until the reader
-     scrolls near the picture. */
+  /* pictures: try the smaller copy (see PICTURE SIZES), then the full-size link, then (for pictures
+     hosted elsewhere) an image proxy asked to shrink it too, then the placeholder letter. `when` is
+     'first' for the picture that matters most on the page, 'now' to load at once, or left out to wait
+     until the reader scrolls near the picture. */
   var PX = { s: 90, t: 160, m: 320, l: 640, h: 1024 };
+  /* a picture kept on this site: its full-size address (on the address the reader is using) and file name */
+  function sitePicture(url) {
+    var u; try { u = new URL(url, location.href); } catch (e) { return null; }
+    if (u.host !== location.host && SITE_PICTURES.hosts.indexOf(u.hostname) < 0) return null;
+    var file = u.pathname.split('/').pop();
+    if (!/\.(jpe?g|png|webp)$/i.test(file)) return null;
+    return { full: new URL(u.pathname, location.href).href, file: file };
+  }
   function smallerCopy(url, size) {
+    var site = sitePicture(url), folder = SITE_PICTURES.sizes[size];
+    if (site) return folder ? new URL('/' + SITE_PICTURES.folder + folder + '/' + site.file, location.href).href : null;
     var m = PX[size] && url.match(/^https?:\/\/i\.imgur\.com\/([A-Za-z0-9]{7}|[A-Za-z0-9]{5})\.(jpe?g|png)(?:[?#].*)?$/i);
     return m ? 'https://i.imgur.com/' + m[1] + size + '.' + m[2].toLowerCase().replace('jpeg', 'jpg') : null;
   }
   function loadImage(img, url, failTarget, size, when) {
     if (!url) { failTarget.classList.add('fail'); return; }
+    var site = sitePicture(url);
     var proxy = 'https://images.weserv.nl/?url=' + encodeURIComponent(url.replace(/^https?:\/\//, ''));
     if (PX[size]) proxy += '&w=' + PX[size] + '&h=' + PX[size] + '&we';
-    var sources = [smallerCopy(url, size), url, proxy].filter(Boolean), tried = 0;
+    var sources = (site ? [smallerCopy(url, size), site.full] : [smallerCopy(url, size), url, proxy]).filter(Boolean), tried = 0;
     img.decoding = 'async';
     if (when === 'first') img.setAttribute('fetchpriority', 'high');
     else if (when !== 'now') img.loading = 'lazy';

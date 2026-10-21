@@ -80,7 +80,19 @@
     return codeList;
   }
   var PX = { t: 160, m: 320, l: 640 };
+  /* pictures kept on the site itself have smaller copies in Images/160, Images/320 and Images/640,
+     as in wiki.js (SITE_PICTURES there); they never go through the outside image proxy */
+  var SITE_HOSTS = ['ninzard.pages.dev'];
+  function sitePicture(url) {
+    var u; try { u = new URL(url, location.href); } catch (e) { return null; }
+    if (u.host !== location.host && SITE_HOSTS.indexOf(u.hostname) < 0) return null;
+    var file = u.pathname.split('/').pop();
+    if (!/\.(jpe?g|png|webp)$/i.test(file)) return null;
+    return { full: new URL(u.pathname, location.href).href, file: file };
+  }
   function smallerCopy(url, size) {
+    var site = sitePicture(url);
+    if (site) return PX[size] ? new URL('/Images/' + PX[size] + '/' + site.file, location.href).href : null;
     var m = url.match(/^https?:\/\/i\.imgur\.com\/([A-Za-z0-9]{7}|[A-Za-z0-9]{5})\.(jpe?g|png)(?:[?#].*)?$/i);
     return m ? 'https://i.imgur.com/' + m[1] + size + '.' + m[2].toLowerCase().replace('jpeg', 'jpg') : null;
   }
@@ -94,7 +106,8 @@
       if (!url) { failTarget.classList.add('fail'); return; }
       var proxy = 'https://images.weserv.nl/?url=' + encodeURIComponent(url.replace(/^https?:\/\//, '')) +
         '&w=' + PX[size] + '&h=' + PX[size] + '&we';
-      var sources = [smallerCopy(url, size), url, proxy].filter(Boolean), tried = 0;
+      var site = sitePicture(url);
+      var sources = (site ? [smallerCopy(url, size), site.full] : [smallerCopy(url, size), url, proxy]).filter(Boolean), tried = 0;
       img.addEventListener('error', function () {
         tried++;
         if (tried < sources.length) img.src = sources[tried];
