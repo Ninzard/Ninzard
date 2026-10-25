@@ -16,8 +16,26 @@
      320 copy from its image code. The chart is marked .no-name so that its
      links stay plain cards instead of name links.
      ================================================================ */
-  .ib-emblem.pst-emblem{color:#ece4f5}
-  .ib-emblem.pst-emblem span{font-size:24px;letter-spacing:.04em}
+  /* ================================================================
+     Eliza Kitten, drawn in pixels (on her own page and as the mascot of the
+     Parry Staff Team). The infobox has no image code; the script at the end of
+     the page puts a pixel-art canvas into the frame wiki.js builds and draws her
+     there: she blinks, watches the pointer, swishes her tail, purrs when petted
+     (click, tap, Enter or Space) and falls asleep when nobody moves for a while.
+     The same style and script are in both pages; change them in both.
+     ================================================================ */
+  .frame.kit{cursor:pointer;outline:none}
+  .frame.kit .fallback,.frame.kit img{display:none!important}
+  .frame.kit .scan{display:block!important}
+  .frame.kit canvas{display:block;width:100%;aspect-ratio:4/5;image-rendering:pixelated;image-rendering:crisp-edges}
+  .frame.kit:focus-visible{box-shadow:0 0 0 2px var(--accent)}
+  .kit-say{position:absolute;right:16px;top:14px;z-index:3;padding:4px 9px 3px;pointer-events:none;
+    font:600 12px/1.2 var(--disp);letter-spacing:.12em;text-transform:uppercase;color:var(--night);background:var(--accent);
+    box-shadow:3px 3px 0 rgba(11,6,18,.75);opacity:0;transform:translateY(4px);transition:opacity .25s ease,transform .25s ease}
+  .kit-say::after{content:"";position:absolute;left:12px;bottom:-6px;border:6px solid transparent;border-top-color:var(--accent);border-bottom:0}
+  .kit-say.on{opacity:1;transform:none}
+  .kit-hint{display:block;margin-top:5px;font:500 12px/1.4 var(--disp);letter-spacing:.04em;color:var(--link)}
+  @media (prefers-reduced-motion:reduce){.kit-say{transition:none}}
 
   .pst{--wire:rgba(195,162,255,.55);--wire-hot:rgba(255,143,180,.7);
     clear:both;position:relative;margin:6px 0 10px;padding:30px 16px 22px;border:1px solid var(--line);
@@ -105,11 +123,11 @@
   <footer>— <b>Kaimachi</b>, announcing the Parry Trials</footer>
 </blockquote>
 
-<aside class="infobox" data-party="pst-emblem" data-caption="The staff of the District of Parry">
+<aside class="infobox" data-caption="Eliza Kitten, the mascot of Parry. Click or tap to pet her.">
   <h3>Staff of the District of Parry</h3>
   <dl>
     <dt>District General</dt><dd>Kaimachi</dd>
-    <dt>Chief of Administration</dt><dd>Elle</dd>
+    <dt><small>Chief of</small><br>Administration</dt><dd>Elle</dd>
     <dt>Administrators</dt><dd>Gui<br>Mélanie<br>Phalth</dd>
     <dt>Moderators</dt><dd>Boygho<br>Kain<br>Lora<br>Marguerite<br>Rudolf<br>ScottyAte<br>SofT</dd>
   </dl>
@@ -117,6 +135,7 @@
   <h3 class="plain">At a glance</h3>
   <dl>
     <dt>Members</dt><dd class="plain">12</dd>
+    <dt>Mascot</dt><dd>Eliza Kitten <small>(unofficial)</small></dd>
     <dt>Former Generals</dt><dd>Boygho, Kain, Rudolf</dd>
     <dt>Representatives</dt><dd>Kain, Mélanie <small>(Legislature XII)</small></dd>
     <dt>Parties</dt><dd class="plain"><span class="or">Original</span>, <span class="pv">Preservation</span></dd>
@@ -306,5 +325,288 @@
 <ul class="cats"><li>Parry Staff</li><li>District of Parry</li></ul>
 
 <script src="wiki.js"></script>
+<script>
+/* ================================================================
+   Eliza Kitten in pixels. A 36 × 45 canvas (the infobox's 4:5 frame), drawn
+   from simple shapes on the pixel grid and redrawn ten times a second.
+   ================================================================ */
+(function () {
+  'use strict';
+  var W = 36, H = 45, CX = 17.5;
+  var C = {
+    skyTop: [44, 28, 74], skyBottom: [66, 24, 48], stripe: 'rgba(11,6,18,.18)',
+    moon: '#f1cf83', moonShade: '#c9a45e', star: '#ece4f5',
+    cushion: '#4a1d3a', cushionTop: '#7a2f55', cushionEdge: '#2a0f22',
+    fur: '#0e0a13', furSoft: '#1a1422', rimLight: '#6e5c99', rimWarm: '#7a3858', outline: '#050307',
+    ear: '#4a2440', eye: '#c9e35c', eyeLow: '#93b83a', pupil: '#07040a', shine: '#ffffff',
+    nose: '#ff8fb4', mouth: '#4a3e5c', whisker: '#b9a9d9',
+    collar: '#ff8fb4', collarDark: '#b8507a', tag: '#f1cf83', tagDark: '#a8823e',
+    heart: '#ff8fb4', heartLight: '#ffd0e0', zzz: '#c3a2ff'
+  };
+
+  function start() {
+    var frame = document.querySelector('.infobox .ib-fig .frame');
+    if (!frame) return false;
+    frame.classList.add('kit');
+    frame.setAttribute('role', 'button');
+    frame.setAttribute('tabindex', '0');
+    frame.setAttribute('aria-label', 'Pet Eliza Kitten');
+    var canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    canvas.setAttribute('role', 'img');
+    canvas.setAttribute('aria-label', 'Pixel portrait of Eliza Kitten, a black cat with green eyes and a rose collar, sitting on a cushion under the moon');
+    frame.insertBefore(canvas, frame.firstChild);
+    var say = document.createElement('span');
+    say.className = 'kit-say'; say.setAttribute('aria-live', 'polite');
+    frame.parentNode.appendChild(say);
+    var cap = frame.closest('.ib-fig').querySelector('figcaption');
+    var hint = document.createElement('span');
+    hint.className = 'kit-hint';
+    if (cap) cap.appendChild(hint);
+    run(canvas, frame, say, hint);
+    return true;
+  }
+
+  function run(canvas, frame, say, hint) {
+    var g = canvas.getContext('2d');
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var KEY = 'nz-eliza-kitten-pets', pets = 0;
+    try { pets = Number(localStorage.getItem(KEY)) || 0; } catch (e) {}
+    function showPets() { hint.textContent = pets ? 'Petted ' + pets + (pets === 1 ? ' time' : ' times') + ' on this device' : ''; }
+    showPets();
+
+    var t0 = performance.now(), now = 0;
+    var look = { x: 0, y: 0 }, lastMove = performance.now();
+    var nextBlink = 1500, blinkUntil = 0, happyUntil = 0, twitch = { side: 0, until: 0, next: 4000 };
+    var hearts = [], zs = [], nextZ = 0, sayTimer = 0;
+    var stars = [[3, 14], [9, 3], [14, 8], [27, 4], [32, 10], [30, 17], [5, 22], [33, 24], [21, 2]];
+
+    /* ---- shapes on the grid ---- */
+    function inEllipse(x, y, cx, cy, rx, ry) { var dx = (x - cx) / rx, dy = (y - cy) / ry; return dx * dx + dy * dy <= 1; }
+    function inTri(x, y, a, b, c) {
+      var d1 = (x - b[0]) * (a[1] - b[1]) - (a[0] - b[0]) * (y - b[1]);
+      var d2 = (x - c[0]) * (b[1] - c[1]) - (b[0] - c[0]) * (y - c[1]);
+      var d3 = (x - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (y - a[1]);
+      var neg = d1 < 0 || d2 < 0 || d3 < 0, pos = d1 > 0 || d2 > 0 || d3 > 0;
+      return !(neg && pos);
+    }
+    function px(x, y, color) { if (x >= 0 && y >= 0 && x < W && y < H) { g.fillStyle = color; g.fillRect(x, y, 1, 1); } }
+    function mix(a, b, k) { return 'rgb(' + a.map(function (v, i) { return Math.round(v + (b[i] - v) * k); }).join(',') + ')'; }
+
+    /* ---- the cat as a mask of fur pixels ---- */
+    function catMask(s) {
+      var m = [], hy = s.headY, tipX = 31 + s.sway, tipY = 25.5;
+      var earL = [[9.6, 14 + hy], [11.4 + (s.twitch === -1 ? -0.8 : 0), 5.4 + hy], [16.2, 11 + hy]];
+      var earR = [[25.4, 14 + hy], [23.6 + (s.twitch === 1 ? 0.8 : 0), 5.4 + hy], [18.8, 11 + hy]];
+      function tail(x, y) {
+        for (var i = 0; i <= 24; i++) {
+          var t = i / 24, u = 1 - t;
+          var bx = u * u * u * 24.5 + 3 * u * u * t * 31.5 + 3 * u * t * t * (33 + s.sway * 0.4) + t * t * t * tipX;
+          var by = u * u * u * 38.5 + 3 * u * u * t * 38.8 + 3 * u * t * t * 31 + t * t * t * tipY;
+          var r = 1.55 - t * 0.35;
+          if ((x - bx) * (x - bx) + (y - by) * (y - by) <= r * r) return true;
+        }
+        return false;
+      }
+      for (var y = 0; y < H; y++) {
+        m[y] = [];
+        for (var x = 0; x < W; x++) {
+          var X = x + 0.5, Y = y + 0.5;
+          m[y][x] =
+            inEllipse(X, Y, CX, 17 + hy, 8.2, 6.9) ||
+            inTri(X, Y, earL[0], earL[1], earL[2]) || inTri(X, Y, earR[0], earR[1], earR[2]) ||
+            inEllipse(X, Y, CX, 31.6, 8.4, 8.9 + s.breath) ||
+            (X > 12.4 && X < 22.6 && Y > 21 + hy && Y < 26) ||
+            inEllipse(X, Y, 11.6, 36.2, 4.1, 4.4) || inEllipse(X, Y, 23.4, 36.2, 4.1, 4.4) ||
+            inEllipse(X, Y, 14.6, 39.7, 2.5, 1.6) || inEllipse(X, Y, 20.4, 39.7, 2.5, 1.6) ||
+            tail(X, Y);
+        }
+      }
+      return { m: m, earL: earL, earR: earR };
+    }
+
+    function drawSky() {
+      for (var y = 0; y < H; y++) {
+        g.fillStyle = mix(C.skyTop, C.skyBottom, y / (H - 1));
+        g.fillRect(0, y, W, 1);
+        if (y % 4 === 3) { g.fillStyle = C.stripe; g.fillRect(0, y, W, 1); }
+      }
+      /* the moon: a crescent */
+      for (var my = 2; my < 11; my++) for (var mx = 2; mx < 11; mx++) {
+        if (inEllipse(mx + 0.5, my + 0.5, 6, 6, 3.6, 3.6) && !inEllipse(mx + 0.5, my + 0.5, 7.6, 5, 3.1, 3.1))
+          px(mx, my, inEllipse(mx + 0.5, my + 0.5, 6, 6, 2.8, 2.8) ? C.moon : C.moonShade);
+      }
+      stars.forEach(function (st, i) {
+        var on = reduce ? 1 : (Math.sin(now / 700 + i * 1.9) + 1) / 2;
+        g.globalAlpha = 0.25 + on * 0.75; px(st[0], st[1], C.star); g.globalAlpha = 1;
+      });
+      /* the cushion */
+      for (var cy = 38; cy < 45; cy++) for (var cx = 2; cx < 34; cx++) {
+        if (inEllipse(cx + 0.5, cy + 0.5, CX, 41.6, 15, 3.2)) {
+          var top = !inEllipse(cx + 0.5, cy - 0.5, CX, 41.6, 15, 3.2);
+          var edge = !inEllipse(cx + 0.5, cy + 1.5, CX, 41.6, 15, 3.2);
+          px(cx, cy, top ? C.cushionTop : edge ? C.cushionEdge : C.cushion);
+        }
+      }
+    }
+
+    function drawCat(s) {
+      var k = catMask(s), m = k.m, hy = s.headY;
+      function on(x, y) { return y >= 0 && y < H && x >= 0 && x < W && m[y][x]; }
+      for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
+        if (!m[y][x]) continue;
+        var up = !on(x, y - 1), left = !on(x - 1, y), down = !on(x, y + 1), right = !on(x + 1, y);
+        var color = C.fur;
+        if (up || left) color = C.rimLight;
+        else if (down || right) color = C.rimWarm;
+        else if (inEllipse(x + 0.5, y + 0.5, CX, 13.5 + hy, 5, 2.4) || inEllipse(x + 0.5, y + 0.5, CX, 28, 4, 3)) color = C.furSoft;
+        px(x, y, color);
+      }
+      /* a dark outline around the silhouette, so she stands off the sky */
+      for (y = 0; y < H; y++) for (x = 0; x < W; x++) {
+        if (m[y][x]) continue;
+        if ((on(x + 1, y) || on(x - 1, y) || on(x, y + 1) || on(x, y - 1)) && y < 41) {
+          g.globalAlpha = 0.55; px(x, y, C.outline); g.globalAlpha = 1;
+        }
+      }
+      /* inner ears */
+      for (y = 4; y < 15; y++) for (x = 8; x < 28; x++) {
+        var X = x + 0.5, Y = y + 0.5, L = k.earL, R = k.earR;
+        if (inTri(X, Y, [L[0][0] + 2, L[0][1] - 1.6], [L[1][0] + 0.7, L[1][1] + 2.4], [L[2][0] - 1.6, L[2][1] - 0.2]) ||
+            inTri(X, Y, [R[0][0] - 2, R[0][1] - 1.6], [R[1][0] - 0.7, R[1][1] + 2.4], [R[2][0] + 1.6, R[2][1] - 0.2])) px(x, y, C.ear);
+      }
+      drawFace(s);
+      /* the collar and its tag */
+      for (x = 11; x < 25; x++) {
+        if (on(x, 23 + hy)) px(x, 23 + hy, C.collar);
+        if (on(x, 24 + hy)) px(x, 24 + hy, C.collarDark);
+      }
+      px(17, 25 + hy, C.tag); px(18, 25 + hy, C.tag); px(17, 26 + hy, C.tagDark); px(18, 26 + hy, C.tag);
+      /* toes */
+      [13, 15, 19, 21].forEach(function (tx) { px(tx, 40, C.furSoft); });
+    }
+
+    function drawFace(s) {
+      var hy = s.headY, ey = 16 + hy;
+      [[13, 1], [20, -1]].forEach(function (e) {
+        var x0 = e[0];
+        if (s.eyes === 'open') {
+          for (var dy = 0; dy < 3; dy++) for (var dx = 0; dx < 3; dx++) px(x0 + dx, ey + dy, dy === 2 ? C.eyeLow : C.eye);
+          var pxx = x0 + 1 + s.lookX, rows = s.lookY < 0 ? [0, 1] : s.lookY > 0 ? [1, 2] : [0, 1, 2];
+          rows.forEach(function (r) { px(pxx, ey + r, C.pupil); });
+          var shineX = s.lookX > 0 ? x0 : x0 + 2;
+          if (shineX !== pxx) px(shineX, ey, C.shine);
+        } else if (s.eyes === 'happy') {
+          px(x0, ey + 2, C.eye); px(x0 + 1, ey + 1, C.eye); px(x0 + 2, ey + 2, C.eye);
+        } else if (s.eyes === 'sleep') {
+          px(x0, ey + 1, C.rimLight); px(x0 + 1, ey + 2, C.rimLight); px(x0 + 2, ey + 1, C.rimLight);
+        } else {
+          px(x0, ey + 1, C.rimLight); px(x0 + 1, ey + 1, C.rimLight); px(x0 + 2, ey + 1, C.rimLight);
+        }
+      });
+      /* nose and mouth */
+      px(17, 20 + hy, C.nose); px(18, 20 + hy, C.nose);
+      px(16, 22 + hy, C.mouth); px(17, 21 + hy, C.mouth); px(18, 21 + hy, C.mouth); px(19, 22 + hy, C.mouth);
+      /* whiskers, reaching past her cheeks */
+      g.globalAlpha = 0.8;
+      [[7, 19], [8, 19], [9, 20], [10, 20], [7, 22], [8, 21], [9, 21], [10, 21]].forEach(function (p) {
+        px(p[0], p[1] + hy, C.whisker); px(35 - p[0], p[1] + hy, C.whisker);
+      });
+      g.globalAlpha = 1;
+    }
+
+    var HEART = ['.X.X.', 'XXXXX', '.XXX.', '..X..'];
+    function drawHearts() {
+      hearts = hearts.filter(function (h) { return now - h.born < h.life; });
+      hearts.forEach(function (h) {
+        var age = (now - h.born) / h.life;
+        var x = Math.round(h.x + (reduce ? 0 : Math.sin(age * 6 + h.x) * 1.2)), y = Math.round(h.y - (reduce ? 0 : age * 13));
+        g.globalAlpha = age > 0.7 ? (1 - age) / 0.3 : 1;
+        HEART.forEach(function (row, r) { for (var c = 0; c < 5; c++) if (row[c] === 'X') px(x + c, y + r, (r === 1 && c === 1) ? C.heartLight : C.heart); });
+        g.globalAlpha = 1;
+      });
+    }
+    var ZED = ['XXX', '.X.', 'XXX'];
+    function drawZs(sleeping) {
+      if (sleeping && now > nextZ) { zs.push({ born: now, life: 2600 }); nextZ = now + 1300; }
+      zs = zs.filter(function (z) { return now - z.born < z.life; });
+      zs.forEach(function (z) {
+        var age = (now - z.born) / z.life, x = 25 + Math.round(age * 6), y = 9 - Math.round(age * 8);
+        g.globalAlpha = 1 - age;
+        ZED.forEach(function (row, r) { for (var c = 0; c < 3; c++) if (row[c] === 'X') px(x + c, y + r, C.zzz); });
+        g.globalAlpha = 1;
+      });
+    }
+
+    function frame_(ts) {
+      now = ts - t0;
+      var real = performance.now();
+      var asleep = real - lastMove > 40000;
+      if (!asleep) zs = zs.filter(function () { return false; });
+      if (now > nextBlink) { blinkUntil = now + 140; nextBlink = now + 2600 + Math.random() * 3600; }
+      if (!reduce && now > twitch.next) { twitch.side = Math.random() < 0.5 ? -1 : 1; twitch.until = now + 180; twitch.next = now + 5000 + Math.random() * 7000; }
+      var happy = real < happyUntil;
+      var s = {
+        headY: happy ? 1 : (reduce ? 0 : (Math.sin(now / 1100) > 0.6 ? 1 : 0)),
+        breath: reduce ? 0 : Math.sin(now / 900) * 0.25,
+        sway: reduce ? 0 : Math.sin(now / (happy ? 160 : 620)) * (happy ? 1.2 : 1.6),
+        twitch: now < twitch.until ? twitch.side : 0,
+        eyes: asleep ? 'sleep' : happy ? 'happy' : now < blinkUntil ? 'blink' : 'open',
+        lookX: look.x, lookY: look.y
+      };
+      g.clearRect(0, 0, W, H);
+      drawSky();
+      drawCat(s);
+      drawHearts();
+      drawZs(asleep);
+    }
+
+    var visible = true, last = 0;
+    function loop(ts) {
+      if (visible && ts - last > 95) { last = ts; frame_(ts); }
+      requestAnimationFrame(loop);
+    }
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { visible = es[0].isIntersecting; }).observe(canvas);
+    requestAnimationFrame(loop);
+
+    /* she watches the pointer */
+    document.addEventListener('pointermove', function (e) {
+      lastMove = performance.now();
+      var r = canvas.getBoundingClientRect();
+      var hx = r.left + r.width * (CX / W), hyy = r.top + r.height * (17 / H);
+      var dx = e.clientX - hx, dy = e.clientY - hyy, dead = r.width * 0.12;
+      look.x = dx > dead ? 1 : dx < -dead ? -1 : 0;
+      look.y = dy > dead * 1.6 ? 1 : dy < -dead * 1.6 ? -1 : 0;
+    }, { passive: true });
+    document.addEventListener('keydown', function () { lastMove = performance.now(); });
+    window.addEventListener('scroll', function () { lastMove = performance.now(); }, { passive: true });
+
+    /* petting */
+    var WORDS = ['prrr…', 'mrrp!', 'purr', 'mrow?', 'prrrrr', '♥'];
+    function pet() {
+      var real = performance.now();
+      var wasAsleep = real - lastMove > 40000;
+      lastMove = real;
+      happyUntil = real + 1500;
+      [[6 + Math.random() * 5, 0], [21 + Math.random() * 5, 220]].forEach(function (h) {
+        hearts.push({ x: h[0], y: 8 + Math.random() * 3, born: now + h[1], life: 1600 });
+      });
+      say.textContent = wasAsleep ? 'mrrh…?' : WORDS[Math.floor(Math.random() * WORDS.length)];
+      say.classList.add('on');
+      clearTimeout(sayTimer);
+      sayTimer = setTimeout(function () { say.classList.remove('on'); }, 1300);
+      pets++;
+      try { localStorage.setItem(KEY, String(pets)); } catch (e) {}
+      showPets();
+    }
+    frame.addEventListener('click', pet);
+    frame.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pet(); }
+    });
+  }
+
+  if (!start()) document.addEventListener('DOMContentLoaded', function () { start(); });
+})();
+</script>
 </body>
 </html>
