@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ScottyAte</title>
 <link rel="stylesheet" href="wiki.css">
+<style>
+  /* the Chief of Administration's row in the infobox: the staff's leader, set across the full width */
+  .ib-rows dt.lead{grid-column:1/-1;display:flex;align-items:center;gap:9px;margin-top:6px;white-space:nowrap;
+    font:600 10.5px/1.2 var(--disp);letter-spacing:.22em;text-transform:uppercase;color:var(--accent);text-shadow:0 0 10px rgba(255,143,180,.35)}
+  .ib-rows dt.lead::before,.ib-rows dt.lead::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,143,180,.7))}
+  .ib-rows dt.lead::after{background:linear-gradient(90deg,rgba(255,143,180,.7),transparent)}
+  .ib-rows dd.lead{grid-column:1/-1;margin:-1px 0 6px;padding:5px 0 7px;text-align:center;font-size:18px;
+    background:radial-gradient(ellipse 55% 100% at 50% 50%,rgba(255,143,180,.13),transparent 75%)}
+</style>
 </head>
 <body data-edited="25 October 2026">
 
@@ -22,7 +31,7 @@
   <p class="band">Incumbent</p>
   <dl>
     <dt>District General</dt><dd>Kaimachi</dd>
-    <dt><small>Chief of</small><br>Administration</dt><dd>Elle</dd>
+    <dt class="lead">Chief of Administration</dt><dd class="lead">Elle</dd>
   </dl>
 
   <h3>Representative for the District of Parry</h3>

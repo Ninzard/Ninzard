@@ -37,6 +37,14 @@
   .kit-hint{display:block;margin-top:5px;font:500 12px/1.4 var(--disp);letter-spacing:.04em;color:var(--link)}
   @media (prefers-reduced-motion:reduce){.kit-say{transition:none}}
 
+  /* the Chief of Administration's row in the infobox: the staff's leader, set across the full width */
+  .ib-rows dt.lead{grid-column:1/-1;display:flex;align-items:center;gap:9px;margin-top:6px;white-space:nowrap;
+    font:600 10.5px/1.2 var(--disp);letter-spacing:.22em;text-transform:uppercase;color:var(--accent);text-shadow:0 0 10px rgba(255,143,180,.35)}
+  .ib-rows dt.lead::before,.ib-rows dt.lead::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,143,180,.7))}
+  .ib-rows dt.lead::after{background:linear-gradient(90deg,rgba(255,143,180,.7),transparent)}
+  .ib-rows dd.lead{grid-column:1/-1;margin:-1px 0 6px;padding:5px 0 7px;text-align:center;font-size:18px;
+    background:radial-gradient(ellipse 55% 100% at 50% 50%,rgba(255,143,180,.13),transparent 75%)}
+
   .pst{--wire:rgba(195,162,255,.55);--wire-hot:rgba(255,143,180,.7);
     clear:both;position:relative;margin:6px 0 10px;padding:30px 16px 22px;border:1px solid var(--line);
     background:
@@ -123,11 +131,11 @@
   <footer>— <b>Kaimachi</b>, announcing the Parry Trials</footer>
 </blockquote>
 
-<aside class="infobox" data-caption="Eliza Kitten, the mascot of Parry. Click or tap to pet her.">
+<aside class="infobox" data-image="eliza_kitten" data-caption="Eliza Kitten, the mascot of Parry. Click or tap to pet her.">
   <h3>Staff of the District of Parry</h3>
   <dl>
     <dt>District General</dt><dd>Kaimachi</dd>
-    <dt><small>Chief of</small><br>Administration</dt><dd>Elle</dd>
+    <dt class="lead">Chief of Administration</dt><dd class="lead">Elle</dd>
     <dt>Administrators</dt><dd>Gui<br>Mélanie<br>Phalth</dd>
     <dt>Moderators</dt><dd>Boygho<br>Kain<br>Lora<br>Marguerite<br>Rudolf<br>ScottyAte<br>SofT</dd>
   </dl>
@@ -332,6 +340,9 @@
    ================================================================ */
 (function () {
   'use strict';
+  /* CX is the cat's center line, between pixel columns 17 and 18. The face's pixels are placed in mirror
+     pairs around it (13 and 22, 17 and 18); the shapes are tested at each pixel's left edge so that they
+     center on the same line. */
   var W = 36, H = 45, CX = 17.5;
   var C = {
     skyTop: [44, 28, 74], skyBottom: [66, 24, 48], stripe: 'rgba(11,6,18,.18)',
@@ -411,7 +422,7 @@
       for (var y = 0; y < H; y++) {
         m[y] = [];
         for (var x = 0; x < W; x++) {
-          var X = x + 0.5, Y = y + 0.5;
+          var X = x, Y = y + 0.5;
           m[y][x] =
             inEllipse(X, Y, CX, 17 + hy, 8.2, 6.9) ||
             inTri(X, Y, earL[0], earL[1], earL[2]) || inTri(X, Y, earR[0], earR[1], earR[2]) ||
@@ -442,9 +453,9 @@
       });
       /* the cushion */
       for (var cy = 38; cy < 45; cy++) for (var cx = 2; cx < 34; cx++) {
-        if (inEllipse(cx + 0.5, cy + 0.5, CX, 41.6, 15, 3.2)) {
-          var top = !inEllipse(cx + 0.5, cy - 0.5, CX, 41.6, 15, 3.2);
-          var edge = !inEllipse(cx + 0.5, cy + 1.5, CX, 41.6, 15, 3.2);
+        if (inEllipse(cx, cy + 0.5, CX, 41.6, 15, 3.2)) {
+          var top = !inEllipse(cx, cy - 0.5, CX, 41.6, 15, 3.2);
+          var edge = !inEllipse(cx, cy + 1.5, CX, 41.6, 15, 3.2);
           px(cx, cy, top ? C.cushionTop : edge ? C.cushionEdge : C.cushion);
         }
       }
@@ -459,7 +470,7 @@
         var color = C.fur;
         if (up || left) color = C.rimLight;
         else if (down || right) color = C.rimWarm;
-        else if (inEllipse(x + 0.5, y + 0.5, CX, 13.5 + hy, 5, 2.4) || inEllipse(x + 0.5, y + 0.5, CX, 28, 4, 3)) color = C.furSoft;
+        else if (inEllipse(x, y + 0.5, CX, 13.5 + hy, 5, 2.4) || inEllipse(x, y + 0.5, CX, 28, 4, 3)) color = C.furSoft;
         px(x, y, color);
       }
       /* a dark outline around the silhouette, so she stands off the sky */
@@ -471,7 +482,7 @@
       }
       /* inner ears */
       for (y = 4; y < 15; y++) for (x = 8; x < 28; x++) {
-        var X = x + 0.5, Y = y + 0.5, L = k.earL, R = k.earR;
+        var X = x, Y = y + 0.5, L = k.earL, R = k.earR;
         if (inTri(X, Y, [L[0][0] + 2, L[0][1] - 1.6], [L[1][0] + 0.7, L[1][1] + 2.4], [L[2][0] - 1.6, L[2][1] - 0.2]) ||
             inTri(X, Y, [R[0][0] - 2, R[0][1] - 1.6], [R[1][0] - 0.7, R[1][1] + 2.4], [R[2][0] + 1.6, R[2][1] - 0.2])) px(x, y, C.ear);
       }
@@ -483,7 +494,7 @@
       }
       px(17, 25 + hy, C.tag); px(18, 25 + hy, C.tag); px(17, 26 + hy, C.tagDark); px(18, 26 + hy, C.tag);
       /* toes */
-      [13, 15, 19, 21].forEach(function (tx) { px(tx, 40, C.furSoft); });
+      [13, 15, 20, 22].forEach(function (tx) { px(tx, 40, C.furSoft); });
     }
 
     function drawFace(s) {
