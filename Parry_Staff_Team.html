@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parry Staff Team</title>
+<link rel="stylesheet" href="wiki.css">
+<style>
+  /* ================================================================
+     Parry Staff Team: the staff chart and the infobox emblem.
+     The chart is a tree: the General at the top, then the Chief of Administration,
+     the administrators and the moderators. Each tier is a rank label and a row
+     of portrait cards; a row with several cards hangs from a bar, and a row's
+     cards join a bar beneath them when the next tier hangs from the whole row.
+     Portraits use the gallery's frame (.face-pic), so wiki.js loads each one's
+     320 copy from its image code. The chart is marked .no-name so that its
+     links stay plain cards instead of name links.
+     ================================================================ */
+  .ib-emblem.pst-emblem{color:#ece4f5}
+  .ib-emblem.pst-emblem span{font-size:24px;letter-spacing:.04em}
+
+  .pst{--wire:rgba(195,162,255,.55);--wire-hot:rgba(255,143,180,.7);
+    clear:both;position:relative;margin:6px 0 10px;padding:30px 16px 22px;border:1px solid var(--line);
+    background:
+      radial-gradient(560px 260px at 50% 0,rgba(255,143,180,.08),transparent 72%),
+      radial-gradient(700px 300px at 50% 100%,rgba(195,162,255,.06),transparent 70%),
+      linear-gradient(rgba(195,162,255,.04) 1px,transparent 1px) 0 0/28px 28px,
+      linear-gradient(90deg,rgba(195,162,255,.04) 1px,transparent 1px) 0 0/28px 28px,
+      var(--deck)}
+  .pst::before{content:"";position:absolute;left:-1px;right:-1px;top:-1px;height:2px;
+    background:linear-gradient(90deg,var(--accent),rgba(195,162,255,.55) 55%,rgba(195,162,255,0))}
+  .pst ul{list-style:none;margin:0;padding:0}
+  .pst-tier{display:flex;flex-direction:column;align-items:center}
+
+  /* the rank labels, sitting on the line that joins the tiers */
+  .pst-rank{display:inline-flex;align-items:center;gap:9px;padding:5px 13px 4px;border:1px solid rgba(195,162,255,.38);
+    background:var(--deck2);font:600 11.5px/1.2 var(--disp);letter-spacing:.16em;text-transform:uppercase;color:var(--ink);
+    box-shadow:0 0 14px rgba(195,162,255,.12)}
+  .pst-rank .pst-num{display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 4px;
+    font:600 11px/1 var(--disp);letter-spacing:0;color:var(--night);background:var(--link)}
+  .t1 .pst-rank{border-color:rgba(255,143,180,.55);box-shadow:0 0 16px rgba(255,143,180,.2)}
+  .t1 .pst-rank .pst-num{background:var(--accent)}
+  .pst-stem{width:2px;height:18px;background:var(--wire)}
+  .t1 .pst-stem,.t2>.pst-stem{background:linear-gradient(var(--wire-hot),var(--wire))}
+
+  /* a row of cards hanging from its bar */
+  .pst-row{display:flex;justify-content:center;align-items:stretch}
+  .pst-row>li{position:relative;display:flex;flex-direction:column;padding:18px 7px 0}
+  .pst-row>li::before,.pst-row>li::after{content:"";position:absolute;top:0;width:50%;height:18px;border-top:2px solid var(--wire)}
+  .pst-row>li::before{right:50%;border-right:2px solid var(--wire);margin-right:-1px}
+  .pst-row>li::after{left:50%}
+  .pst-row>li:first-child::before,.pst-row>li:last-child::after{border-top-color:transparent}
+  .pst-row.pst-root>li{padding-top:0}
+  .pst-row.pst-root>li::before,.pst-row.pst-root>li::after{display:none}
+
+  /* when the next tier hangs from the whole row: a riser under each card and a bar joining them */
+  .pst-row.joins{position:relative;padding-bottom:0}
+  .pst-row.joins::after{content:"";position:absolute;bottom:0;height:2px;background:var(--wire);
+    left:calc(7px + var(--cw)/2);right:calc(7px + var(--cw)/2)}
+  .pst-row.joins .pst-card::after{content:"";display:block;flex:1 0 14px;width:2px;margin:8px auto 0;background:var(--wire)}
+
+  /* the cards */
+  .pst-card{--cw:98px;display:flex;flex-direction:column;align-items:center;width:var(--cw);height:100%;
+    color:inherit;text-decoration:none!important;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+  .pst .face-pic{width:100%}
+  .pst .face-pic::before{content:none}
+  .pst .face-pic b{font-size:calc(var(--cw)*.4)}
+  .pst-name{display:block;margin-top:9px;max-width:100%;font:600 13.5px/1.2 var(--disp);letter-spacing:.02em;color:var(--link);
+    text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pst-note{display:block;margin-top:3px;font:500 11px/1.3 var(--disp);color:var(--mute);text-align:center}
+  .pst-card:hover,.pst-card:focus-visible{transform:translateY(-5px)}
+  .pst-card:hover .pst-name,.pst-card:focus-visible .pst-name{color:#e4d4ff;text-shadow:0 0 10px rgba(195,162,255,.45)}
+  .pst-card:hover .face-pic{border-color:rgba(255,143,180,.55);box-shadow:0 14px 30px rgba(0,0,0,.55),0 0 18px rgba(255,143,180,.22)}
+  .pst-card:hover .face-pic::after{background-position:0 0,0 0,100% 0,100% 0,0 100%,0 100%,100% 100%,100% 100%,0 0,0 0,0 0,0 0;
+    transition:background-position 1.1s linear}
+
+  /* tier sizes: the General's card is the largest */
+  .t1{--cw:156px}.t1 .pst-card{--cw:156px}
+  .t1 .pst-name{font-size:19px;color:var(--ink)}
+  .t1 .pst-note{font-size:12px}
+  .t1 .face-pic{border-color:rgba(255,143,180,.5);box-shadow:0 0 0 1px rgba(255,143,180,.18),0 0 28px rgba(255,143,180,.22),0 10px 22px rgba(0,0,0,.45)}
+  .t2{--cw:136px}.t2 .pst-card{--cw:136px}
+  .t2 .pst-name{font-size:17px;color:var(--ink)}
+  .t2 .pst-note{font-size:11.5px}
+  .t2 .face-pic{border-color:rgba(195,162,255,.5);box-shadow:0 0 22px rgba(195,162,255,.2),0 10px 22px rgba(0,0,0,.45)}
+  .t3{--cw:118px}.t3 .pst-card{--cw:118px}
+  .t3 .pst-name{font-size:15px}
+  .t4{--cw:98px}.t4 .pst-card{--cw:98px}
+
+  .pst figcaption{margin-top:20px;text-align:center;font:400 13px/1.45 var(--text);color:var(--mute)}
+
+  /* the list of former rivals */
+  .rivals{margin:0 0 16px;padding-left:22px}
+  .rivals li{margin-bottom:6px}
+</style>
+</head>
+<body data-edited="25 October 2026">
+
+<h1>Parry Staff Team</h1>
+
+<div class="hatnote">“Parry Staff” and “PST” redirect here.</div>
+
+<blockquote class="hero" data-label="To the District of Parry, 14 August 2026">
+  <p>I am ready to share the staff seats with the people who actually want to put in the work. I just want this place to feel like a home for everyone again.</p>
+  <footer>— <b>Kaimachi</b>, announcing the Parry Trials</footer>
+</blockquote>
+
+<aside class="infobox" data-party="pst-emblem" data-caption="The staff of the District of Parry">
+  <h3>Staff of the District of Parry</h3>
+  <dl>
+    <dt>District General</dt><dd>Kaimachi</dd>
+    <dt>Chief of Administration</dt><dd>Elle</dd>
+    <dt>Administrators</dt><dd>Gui<br>Mélanie<br>Phalth</dd>
+    <dt>Moderators</dt><dd>Boygho<br>Kain<br>Lora<br>Marguerite<br>Rudolf<br>ScottyAte<br>SofT</dd>
+  </dl>
+
+  <h3 class="plain">At a glance</h3>
+  <dl>
+    <dt>Members</dt><dd class="plain">12</dd>
+    <dt>Former Generals</dt><dd>Boygho, Kain, Rudolf</dd>
+    <dt>Representatives</dt><dd>Kain, Mélanie <small>(Legislature XII)</small></dd>
+    <dt>Parties</dt><dd class="plain"><span class="or">Original</span>, <span class="pv">Preservation</span></dd>
+  </dl>
+
+  <h3>Chiefs of Administration</h3>
+  <dl>
+    <dt>1st</dt><dd>Kain <small>(2016)</small></dd>
+    <dt>2nd</dt><dd>Gui <small>(2017–2022)</small></dd>
+    <dt>3rd</dt><dd>Atria <small>(2023)</small></dd>
+    <dt>4th</dt><dd>Elle <small>(since 21 October 2023)</small></dd>
+  </dl>
+</aside>
+
+<p>The <b>Parry Staff Team</b> (<b>PST</b>) is the staff of the District of Parry: the administrators and moderators who run the district's server under its District General. Since July 2026 it has served under General Kaimachi, with Elle as Chief of Administration, three administrators and seven moderators. It took its present shape after the Salon War of August 2026, when Kaimachi gave staff seats to the critics who had come to prosecute her at the Parry Trials instead of to her friends.<sup class="ref">1,2</sup></p>
+
+<p>Its make-up sets it apart from the staffs of the other districts. Three former Generals of Parry sit on it as moderators under their successor, beside the Original Party's 2026 presidential nominee, the loudest of PoG's loyalists and both of Parry's representatives in the Legislature.<sup class="ref">3,1,4</sup> The partnership of its Orie Chief of Administration, Elle, and her friend Phalth, a Preservate, has made it bipartisan in a district where most voters are Ories,<sup class="ref">5</sup> and it settles Parry's quarrels inside Parry, without the Capital.<sup class="ref">6,7</sup> For a district that Apollos once called “the wild west of ninzard,” it has been surprisingly stable.<sup class="ref">8</sup></p>
+
+<nav class="toc"></nav>
+
+<section>
+<h2 id="members">Members</h2>
+
+<p>The General heads the staff. Under her, the Chief of Administration leads the administrators, and the moderators keep order in the district's channels. In the chart below, the administrators and the moderators are listed in alphabetical order, and each portrait links to that member's page.</p>
+
+<figure class="pst no-name" aria-label="Chart of the Parry Staff Team">
+
+  <div class="pst-tier t1">
+    <span class="pst-rank"><span class="pst-num">1</span>District General</span>
+    <span class="pst-stem"></span>
+    <ul class="pst-row pst-root">
+      <li><a class="face pst-card" href="Kaimachi.html"><span class="face-pic"><img data-image="kaimachi" alt="Kaimachi"><b>K</b></span><span class="pst-name">Kaimachi</span><span class="pst-note">11th General of Parry</span></a></li>
+    </ul>
+  </div>
+
+  <div class="pst-tier t2">
+    <span class="pst-stem"></span>
+    <span class="pst-rank"><span class="pst-num">1</span>Chief of Administration</span>
+    <ul class="pst-row">
+      <li><a class="face pst-card" href="Elle.html"><span class="face-pic"><img data-image="elle" alt="Elle"><b>E</b></span><span class="pst-name">Elle</span><span class="pst-note">4th holder, since 21 October 2023</span></a></li>
+    </ul>
+  </div>
+
+  <div class="pst-tier t3">
+    <span class="pst-stem"></span>
+    <span class="pst-rank"><span class="pst-num">3</span>Administrators</span>
+    <ul class="pst-row joins">
+      <li><a class="face pst-card" href="Gui.html"><span class="face-pic"><img data-image="gui" alt="Gui"><b>G</b></span><span class="pst-name">Gui</span><span class="pst-note">Reinstated in 2023</span></a></li>
+      <li><a class="face pst-card" href="Mélanie.html"><span class="face-pic"><img data-image="melanie" alt="Mélanie"><b>M</b></span><span class="pst-name">Mélanie</span><span class="pst-note">Representative for Parry</span></a></li>
+      <li><a class="face pst-card" href="Phalth.html"><span class="face-pic"><img data-image="phalth" alt="Phalth"><b>P</b></span><span class="pst-name">Phalth</span><span class="pst-note">The Parry Admin</span></a></li>
+    </ul>
+  </div>
+
+  <div class="pst-tier t4">
+    <span class="pst-stem"></span>
+    <span class="pst-rank"><span class="pst-num">7</span>Moderators</span>
+    <ul class="pst-row">
+      <li><a class="face pst-card" href="Boygho.html"><span class="face-pic"><img data-image="boygho" alt="Boygho"><b>B</b></span><span class="pst-name">Boygho</span><span class="pst-note">9th General</span></a></li>
+      <li><a class="face pst-card" href="Kain.html"><span class="face-pic"><img data-image="kain" alt="Kain"><b>K</b></span><span class="pst-name">Kain</span><span class="pst-note">2nd &amp; 5th General</span></a></li>
+      <li><a class="face pst-card" href="Lora.html"><span class="face-pic"><img data-image="lora" alt="Lora"><b>L</b></span><span class="pst-name">Lora</span></a></li>
+      <li><a class="face pst-card" href="Marguerite.html"><span class="face-pic"><img data-image="marguerite" alt="Marguerite"><b>M</b></span><span class="pst-name">Marguerite</span><span class="pst-note">Salon channel</span></a></li>
+      <li><a class="face pst-card" href="Rudolf.html"><span class="face-pic"><img data-image="rudolf" alt="Rudolf"><b>R</b></span><span class="pst-name">Rudolf</span><span class="pst-note">8th General; men's events</span></a></li>
+      <li><a class="face pst-card" href="ScottyAte.html"><span class="face-pic"><img data-image="scottyate" alt="ScottyAte"><b>S</b></span><span class="pst-name">ScottyAte</span><span class="pst-note">2026 Orie nominee</span></a></li>
+      <li><a class="face pst-card" href="SofT.html"><span class="face-pic"><img data-image="soft" alt="SofT"><b>S</b></span><span class="pst-name">SofT</span></a></li>
+    </ul>
+  </div>
+
+  <figcaption>The Parry Staff Team in October 2026. Administrators and moderators are listed alphabetically.</figcaption>
+</figure>
+</section>
+
+<section>
+<h2 id="running">How it runs</h2>
+
+<h3 id="light-touch">Light moderation</h3>
+
+<p>Parry's staff does not police the district's culture. Parry has always prized argument, offense and spectacle, and in early 2026 Apollos described it as a place that “has never been a safe space.”<sup class="ref">8</sup> When Kaimachi faced the district at the Parry Trials there were no mutes and no bans,<sup class="ref">7</sup> and by September she was holding Parry without the Capital, without a loyalist staff and without heavy moderation.<sup class="ref">9</sup> The Charter of the Ninzard Project backs this: its Section 3 leaves each district's culture to the district rather than the Capital, and Section 4 requires every disciplinary action to come with a stated reason.<sup class="ref">10</sup></p>
+
+<h3 id="parry-business">“Parry business”</h3>
+
+<p>The staff settles Parry's crises inside Parry. When the Salon War broke out in August 2026, the Preservate Apparatus pressed for an intervention, among them General Cyntaku and former General Aurase, but President Poka overruled them: no outside interventions, no moderators and no cleanup.<sup class="ref">6</sup> Kaimachi told the other district generals not to step in, telling anyone who tried to help her that the crisis was “Parry business.”<sup class="ref">7</sup> Meikaqu later counted Poka's refusal to help as one of the three things that saved the district.<sup class="ref">2</sup></p>
+
+<h3 id="charges">Seats with a charge</h3>
+
+<p>Since the Parry Trials, some seats come with a piece of the district. The Trials turned the rivalry between the Parry Girls, the Sacback Room and the Salonnistes into an open contest for events, channels, bragging rights and canon, and Kaimachi handed her critics their share of it along with the seats.<sup class="ref">1</sup> Rudolf, who had complained for a month that nobody planned anything for the men of the Sacback Room, was given the men's events, with a channel, an event slot and a staff seat. Marguerite, who had told Kaimachi she was no General, was given the salon channel and dared to make it better than Kaimachi's own.<sup class="ref">1</sup></p>
+
+<h3 id="parties">Ories and Preservates</h3>
+
+<p>Parry's voters lean heavily toward the Original Party,<sup class="ref">5</sup> but its staff is mixed. At its head, the Orie Elle and her friend Phalth, a Preservate, are its most senior and most trusted members, and their partnership is credited with building a bipartisan environment in the district. Mélanie and Kain, Parry's two representatives, are Preservates,<sup class="ref">4</sup> while ScottyAte was the Ories' nominee for president in 2026<sup class="ref">3</sup> and Marguerite belongs to the Salonnistes, PoG's loyalists from the Original Party's Romantic Flank.<sup class="ref">11</sup></p>
+</section>
+
+<section>
+<h2 id="other-districts">Other districts' staffs</h2>
+
+<p>Main, the largest district, keeps a conventional staff. Under General Woofer it has had a Head of Administrators, Seandry, with administrators such as Ploutos and PluPlu, and a Head of Moderators leading a team of moderators that changes with the times;<sup class="ref">12</sup> Poka held that post until late 2025, when Fogueteiro succeeded her.<sup class="ref">13</sup> Main's staff works like a household. Since September 2026 its public channels close every Sunday under the Azzurro Policy, partly so that its moderators can rest.<sup class="ref">14</sup> Scope, which had no active General in October 2026, needed no help from the Capital: its members handled their own moderation.<sup class="ref">15</sup></p>
+
+<p>Parry's staff differs in three ways. Instead of separate heads for its administrators and its moderators, it has one Chief of Administration directly under the General. It is not drawn from the General's circle: Kaimachi, accused of governing only for her friends, gave its open seats to the people who wanted her gone, and Meikaqu concluded that by not hiring her friends she denied her opponents the proof they were looking for.<sup class="ref">11,2</sup> And it is made up largely of the district's own former leaders and rivals. Three of its moderators, Boygho, Kain and Rudolf, are former Generals of Parry, and both of the district's representatives in Legislature XII, Kain and Mélanie, sit on it.<sup class="ref">4</sup></p>
+
+<p>It also differs from Parry's own staff under PoG, who governed the district in the first half of 2026. PoG kept appointments fluid and loyalties uncertain, made her staff compete for their seats and her approval, and treated their resignations as a filter that left a small circle willing to serve with “max passion.” Her iron grip on the staff let Parry's anarchic culture run free while the discipline stayed inside the staff, but her detachment wore down her staff's trust.<sup class="ref">16</sup></p>
+</section>
+
+<section>
+<h2 id="history">History</h2>
+
+<h3 id="early">Early staff (2016–2022)</h3>
+
+<p>Kain, later the 2nd and 5th General of Parry, was the district's first Chief of Administration, in 2016. On taking office as General in January 2017 he appointed Gui to succeed him, and Gui held the post for five and a half years, under Kain, Atria, Helen, Aurase and Xorbit, until Xorbit dismissed him on 12 August 2022 and left the office empty.</p>
+
+<h3 id="rudolf-to-pog">Under Rudolf, Boygho and PoG (2023–2026)</h3>
+
+<p>When Rudolf took power in January 2023, he reinstated Gui as an administrator and named Atria the 3rd Chief of Administration. Elle, the 4th, has held the post since 21 October 2023. Gui stood against Rudolf for General twice that year, winning 69 of 154 votes in July and 33 of 121 in December.<sup class="ref">17,18</sup></p>
+
+<p>By October 2025 the staff included Boygho, an administrator from the Ories' Rationalist Flank, and Phalth, a Preservate moderator. When Rudolf was removed by referendum that month, the two stood against each other for General, and Boygho won; Phalth, the Capital's candidate, took 43 of 130 votes.<sup class="ref">19,20</sup> PoG, who succeeded Boygho, ran a staff of rivals competing for her favor, but by June 2026 its consolidated core had become fiercely loyal to her. For her twentieth birthday on 12 June, the staff opened a stage on which Parryans sang to her, many in French; when Kaimachi, her opponent, sang in halting French at a synthesizer, PoG was moved to tears.<sup class="ref">16</sup></p>
+
+<h3 id="salon-war">Salon War and Parry Trials (2026)</h3>
+
+<p>Kaimachi beat PoG by two votes and spent her first month on events for her friends, the Parry Girls. By late July the district had split into three angry blocs, and in August the staff began to break.<sup class="ref">16,21,11</sup> Two administrators quit on 10 and 12 August, their resignations set off more among the moderators, and Elle threatened to resign unless Kaimachi sided with the Sacback Room.<sup class="ref">22,7</sup> Kain and Mélanie, Parry's representatives, tried to keep the server from imploding.<sup class="ref">7</sup></p>
+
+<p>On 14 August Kaimachi apologized to the district, promised to share the staff seats with those willing to work, and opened the Parry Trials, inviting her fiercest critics to prosecute her on a stage channel.<sup class="ref">7</sup> She refused to appoint her friends. Instead she gave Rudolf the men's events and a staff seat, gave Marguerite the salon channel, and talked Elle into keeping her seat:<sup class="ref">1</sup></p>
+
+<blockquote class="dialogue">
+  <p><b>Elle:</b> Can I just—okay. Kai. … I have threatened to quit like... four times this month alone—</p>
+  <p><b>Kaimachi:</b> Five.</p>
+  <p><b>Elle:</b> —FIVE times, and every single time you send me a paragraph—</p>
+  <p><b>Kaimachi:</b> … Keep the seat. Please. Please. Please. It's lonely being the only coward here.</p>
+  <p><b>Elle:</b> Fine.</p>
+  <p><b>Kaimachi:</b> Baby!</p>
+  <p><b>Elle:</b> —but I still have my resignation drafted.</p>
+</blockquote>
+
+<p>The Trials ended the Salon War and secured Parry under Kaimachi.<sup class="ref">1</sup> Seven of the eleven members who now serve under her took the microphone that night: Boygho, Elle, Kain, Lora, Marguerite, Mélanie and Rudolf. Boygho, Marguerite and Rudolf came to prosecute her.<sup class="ref">7,1</sup></p>
+</section>
+
+<section>
+<h2 id="stability">Stability</h2>
+
+<p>Parry's staff had a long record of upheaval. Xorbit fired its Chief of Administration in 2022, Rudolf's choice for the post lasted less than a year, PoG let her staff fight among themselves, and the Salon War emptied seats in August 2026.<sup class="ref">16,22</sup> Since the Parry Trials, however, the team has been surprisingly stable. Its roots also go back further than its newest seats: Elle has served under four Generals, Rudolf, Boygho, PoG and Kaimachi, and Gui, first appointed by Kain in 2017, returned when Rudolf reinstated him in January 2023.</p>
+
+<p>The team holds together people who have fought one another:</p>
+
+<ul class="rivals">
+  <li>Rudolf, removed as General by referendum in October 2025 with 97 of 118 Parryans voting against him, moderates beside Boygho, who replaced him.<sup class="ref">20</sup></li>
+  <li>Boygho beat Phalth, then a fellow member of the staff, for General in the same snap election.<sup class="ref">20</sup></li>
+  <li>Gui stood against Rudolf for General twice in 2023, the year Rudolf reinstated him.<sup class="ref">17,18</sup></li>
+  <li>Phalth accused ScottyAte of using his cat to pander to Parry's “normie” voters during his 2026 presidential campaign, and SofT campaigned in Parry for his opponent, Poka.<sup class="ref">23</sup></li>
+  <li>Rudolf opened the Parry Trials by hurling insults at Kaimachi, and Marguerite told her, “You're not a General.”<sup class="ref">1</sup></li>
+</ul>
+
+<blockquote>
+  <p>「Kaia assigned positions to those who wished her gone, daring them to do better. Whisper campaigns die in the light. She didn't hire her friends, so her adversaries were denied the proof they sought.」</p>
+  <footer>— <b>Meikaqu</b>, 17 August 2026</footer>
+</blockquote>
+</section>
+
+<section>
+<h2 id="references">References</h2>
+<p class="note">Fragments recovered from Phases III–V of the Archives.</p>
+<ol class="refs">
+<li id="r1">Phase V, §21.3.7.</li>
+<li id="r2">Phase V, §21.3.9.</li>
+<li id="r3">Phase IV, §20.5.3.</li>
+<li id="r4">Phase V, §21.1.2.</li>
+<li id="r5">Phase IV, §16.6.3.</li>
+<li id="r6">Phase V, §21.3.3.</li>
+<li id="r7">Phase V, §21.3.6.</li>
+<li id="r8">Phase IV, §17.8.6.</li>
+<li id="r9">Phase V, §21.3.8.</li>
+<li id="r10">Phase IV, §18.5.6.</li>
+<li id="r11">Phase V, §21.3.1.</li>
+<li id="r12">Phase IV, §16.4.7.</li>
+<li id="r13">Phase IV, §16.5.5.</li>
+<li id="r14">Phase V, §21.4.0.</li>
+<li id="r15">Phase V, §21.2.5.</li>
+<li id="r16">Phase IV, §20.8.2.</li>
+<li id="r17">Phase III, §12.5.7.</li>
+<li id="r18">Phase III, §12.8.2.</li>
+<li id="r19">Phase IV, §16.4.2.</li>
+<li id="r20">Phase IV, §16.4.4.</li>
+<li id="r21">Phase V, §21.3.0.</li>
+<li id="r22">Phase V, §21.3.2.</li>
+<li id="r23">Phase IV, §20.7.2.</li>
+</ol>
+</section>
+
+<nav class="navbox" data-box="Parry Staff Team"></nav>
+
+<ul class="cats"><li>Parry Staff</li><li>District of Parry</li></ul>
+
+<script src="wiki.js"></script>
+</body>
+</html>
