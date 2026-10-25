@@ -635,7 +635,7 @@
   }
 
   var NO_NAME = 'h1, h2, h3, h4, h5, h6, .toc, .hatnote, .refs, .cats, .note, figcaption, dt, .ib-name, .ib-head, .ib-in, .ib-band, ' +
-    '.navbox-title, li.self, code, pre, script, style, .faces, table.image-codes, .el-cands, .endorse, table.results, .election-map, ' +
+    '.navbox-title, li.self, code, pre, script, style, .faces, .ib-fig, table.image-codes, .el-cands, .endorse, table.results, .election-map, ' +
     '.share-chart, .swatch, .nm, .no-name, ' + PARTIES.map(function (p) { return '.' + p.cls; }).join(', ');
   /* quoted words stay as they were; a quote's attribution and a dialogue's speakers do not */
   function quoted(node) {
@@ -653,7 +653,9 @@
     var names = reg.list.filter(function (e) { return !self(e); }).map(function (e) { return e.name; });
     if (!names.length) return;
     names.sort(function (a, b) { return b.length - a.length; });
-    var RX = new RegExp('(^|[^A-Za-z0-9_@])(' + names.map(function (n) { return n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|') + ')(?![A-Za-z0-9_])', 'g');
+    /* whole words only, accented letters included, so that a short name such as "M" never matches the
+       start of "Mélanie" (added 24 October 2026, when M joined the gallery) */
+    var RX = new RegExp('(^|[^\\p{L}\\p{N}_@])(' + names.map(function (n) { return n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|') + ')(?![\\p{L}\\p{N}_])', 'gu');
     var w = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), list = [], t;
     while ((t = w.nextNode())) {
       var p = t.parentNode;
