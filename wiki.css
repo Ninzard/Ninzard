@@ -55,6 +55,9 @@
   /* the logo's idle glow, and the peak of its pulse */
   --logo-glow:drop-shadow(0 0 4px rgba(160,85,200,.45)) drop-shadow(0 0 12px rgba(150,50,90,.28));
   --logo-pulse:drop-shadow(0 0 6px rgba(185,110,230,.7)) drop-shadow(0 0 20px rgba(175,60,115,.45));
+  /* the glow around a pixel sprite in an infobox, and the peak of its slow pulse (see "Picture versions") */
+  --sprite-glow:drop-shadow(0 0 2px rgba(255,236,246,.9)) drop-shadow(0 0 8px rgba(255,143,180,.62)) drop-shadow(0 0 22px rgba(195,162,255,.5));
+  --sprite-pulse:drop-shadow(0 0 2px rgba(255,242,250,1)) drop-shadow(0 0 12px rgba(255,143,180,.85)) drop-shadow(0 0 32px rgba(195,162,255,.68));
   /* the soft filter on every picture on the wiki (portraits in infoboxes, the gallery, hover previews,
      the image codes page and election pages): a little less colour, faint scan lines, the logo's
      indigo-to-rose tint and a light vignette. --pic-filter at saturate(1) and the four colours at
@@ -207,9 +210,45 @@ sup.ref{font:500 11px/0 var(--disp);margin-left:1px}
     linear-gradient(var(--accent),var(--accent)) bottom right/2px 18px no-repeat;
 }
 .fallback{display:none;aspect-ratio:4/5;place-items:center;font:700 80px/1 var(--disp);color:var(--accent);background:radial-gradient(circle at 50% 42%,rgba(255,143,180,.2),transparent 62%)}
-.frame.fail img,.frame.fail .scan{display:none}
+.frame.fail > img,.frame.fail > .scan{display:none}
 .frame.fail .fallback{display:grid}
 .ib-fig figcaption{margin-top:12px;text-align:center;font:400 13px/1.4 var(--text);color:var(--mute)}
+/* PICTURE VERSIONS: buttons above an infobox's picture that switch it to another version of the person
+   (see PICTURE VERSIONS in wiki.js). The frame keeps the size of the main picture while another is shown. */
+.ib-vers{display:flex;margin:0 8px 10px;border:1px solid var(--line);background:rgba(11,6,18,.55)}
+.ib-ver{flex:1 1 auto;position:relative;margin:0;padding:8px 10px 7px;border:0;border-radius:0;background:none;cursor:pointer;
+  -webkit-appearance:none;appearance:none;font:600 11.5px/1 var(--disp);letter-spacing:.14em;text-transform:uppercase;color:var(--mute);
+  transition:color .2s,background-color .2s}
+.ib-ver+.ib-ver{border-left:1px solid var(--line)}
+.ib-ver:hover{color:var(--ink);background:rgba(195,162,255,.07)}
+.ib-ver[aria-pressed="true"]{color:var(--ink);background:linear-gradient(180deg,rgba(255,143,180,.03),rgba(255,143,180,.13));text-shadow:0 0 8px rgba(255,143,180,.5)}
+.ib-ver[aria-pressed="true"]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--accent);box-shadow:0 0 8px rgba(255,143,180,.75)}
+.ib-ver:focus-visible{outline:1px solid var(--link);outline-offset:-4px}
+.frame.alt-on{min-height:355px}
+.frame.alt-on > img,.frame.alt-on > .fallback{visibility:hidden}
+.ib-alt{position:absolute;inset:0;display:none;background:#0a0510}
+.ib-alt.on{display:block;animation:altIn .3s ease-out}
+@keyframes altIn{from{opacity:0}}
+.frame .ib-alt img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.alt-letter{display:none;position:absolute;inset:0;place-items:center;font:700 80px/1 var(--disp);color:var(--accent);
+  background:radial-gradient(circle at 50% 42%,rgba(255,143,180,.2),transparent 62%)}
+.ib-alt.fail img{display:none}
+.ib-alt.fail .alt-letter{display:grid}
+/* a pixel sprite stands on a small stage: violet light behind it, a rose glow on the floor at its feet and a
+   faint grid of its own pixels; around the sprite itself, --sprite-glow, slowly pulsing to --sprite-pulse */
+.ib-alt.sprite{background:
+  radial-gradient(ellipse 15% 1.6% at 50% var(--feet,92%),rgba(6,3,10,.85),transparent 80%),
+  radial-gradient(ellipse 38% 4.2% at 50% var(--feet,92%),rgba(255,143,180,.7),rgba(255,143,180,.2) 55%,transparent 80%),
+  radial-gradient(ellipse 56% 46% at 50% 52%,rgba(195,162,255,.2),rgba(195,162,255,.06) 58%,transparent 80%),
+  #0a0510}
+.ib-alt.sprite::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(90deg,rgba(195,162,255,.09) 1px,transparent 1px) var(--sx,0) var(--sy,0)/var(--px,8px) var(--px,8px),
+    linear-gradient(180deg,rgba(195,162,255,.09) 1px,transparent 1px) var(--sx,0) var(--sy,0)/var(--px,8px) var(--px,8px);
+  -webkit-mask:radial-gradient(ellipse 62% 52% at 50% 58%,#000 15%,transparent 78%);mask:radial-gradient(ellipse 62% 52% at 50% 58%,#000 15%,transparent 78%)}
+.frame .ib-alt.sprite img{inset:auto;width:auto;height:auto;object-fit:fill;filter:var(--sprite-glow);animation:spriteGlow 5s ease-in-out infinite}
+.frame .ib-alt.sprite img:not(.fit){visibility:hidden}
+@keyframes spriteGlow{50%{filter:var(--sprite-pulse)}}
 /* a party's infobox (data-party="pv"): the party's name on a field of its colour, in place of a portrait */
 .ib-emblem{position:relative;margin:6px 8px 0;min-height:150px;display:grid;place-items:center;padding:22px 16px 26px;text-align:center;
   background:#0a0510;background:radial-gradient(ellipse at 50% 46%,color-mix(in srgb,currentColor 24%,transparent),transparent 72%),#0a0510;
@@ -412,6 +451,9 @@ a.face:hover .face-name{color:#e4d4ff;text-shadow:0 0 10px rgba(195,162,255,.45)
    elections.css, and a losing candidate keeps the darker look elections.css gives them.
    ================================================================ */
 img{filter:var(--pic-filter)}
+/* pixel art (the sprites in Images/Sprites; wiki.js gives them the class "px") keeps hard pixel edges at any size */
+img.px{image-rendering:pixelated}
+td.code-pic img.px{object-fit:contain}
 /* the infobox portrait */
 .frame::after{content:"";position:absolute;inset:0;pointer-events:none;background:var(--pic-fx)}
 /* the small pictures on the image codes page (the cell's padding is 9px 12px) */

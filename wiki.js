@@ -33,10 +33,12 @@
   var LOGO = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" aria-hidden="true"><defs><linearGradient id="nz-g" x1="0" y1="0" x2="0" y2="300" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#523c7b"/><stop offset=".33" stop-color="#623869"/><stop offset=".58" stop-color="#70355d"/><stop offset=".8" stop-color="#7e3350"/><stop offset="1" stop-color="#8b3044"/></linearGradient><clipPath id="nz-c"><circle cx="150" cy="150" r="127"/></clipPath></defs><circle cx="150" cy="150" r="148" fill="url(#nz-g)" stroke="#07040a" stroke-width="4"/><circle cx="150" cy="150" r="141" fill="#1c1a1f"/><g clip-path="url(#nz-c)" fill="url(#nz-g)"><rect x="20" y="24.5" width="260" height="18"/><rect x="20" y="64.5" width="260" height="14"/><rect x="20" y="94.5" width="260" height="17"/><rect x="20" y="127.5" width="260" height="24"/><rect x="20" y="162.5" width="260" height="31"/><rect x="20" y="201.5" width="260" height="39"/><rect x="20" y="243.5" width="260" height="40"/></g><path fill="#d4d3d8" d="M137.5 40.5 67.5 117.5 137.5 194.5ZM162.5 95.5 231.5 169.5 162.5 248.5Z"/><path fill="#fff" d="M137.5 51.5 71.5 122.5 137.5 194.5ZM162.5 105.5 228.5 177.5 162.5 248.5Z"/></svg>';
 
   /* PICTURE SIZES: a page never downloads a full-size portrait just to show a small one.
-     The portraits live on the site itself, in the Images folder of the repository
-     (https://ninzard.pages.dev/Images/Portrait_Poka.jpg). Each has smaller copies with the same file name
-     in Images/160, Images/320 and Images/640 (the width in pixels); SITE_PICTURES says which letter uses
-     which folder. An Imgur link, if one is ever used, gets Imgur's own smaller copy instead.
+     The portraits live on the site itself, in the Images/Portraits folder of the repository
+     (https://ninzard.pages.dev/Images/Portraits/Portrait_Poka.jpg). Each has smaller copies with the same
+     file name in Images/160, Images/320 and Images/640 (the width in pixels), whatever folder the original
+     is in; SITE_PICTURES says which letter uses which folder. An Imgur link, if one is ever used, gets
+     Imgur's own smaller copy instead. The pixel sprites in Images/Sprites are the exception: they are tiny,
+     so they always load at their own size and are drawn with hard pixel edges (see pixelArt below).
      The letters: s = tiny, t = 160px, m = 320px, l = 640px, h = large.
      The links in Image_codes.html stay the full-size originals and the uploaded files are never changed;
      if a smaller copy can't be had, the full-size picture is used. Change a letter here to make one
@@ -56,8 +58,23 @@
   var SITE_PICTURES = {
     folder: 'Images/',
     sizes: { s: '160', t: '160', m: '320', l: '640', h: '640' },
-    hosts: ['ninzard.pages.dev']
+    hosts: ['ninzard.pages.dev'],
+    /* pixel art: pictures on the site whose address matches this. They skip the smaller copies (which
+       would blur them) and get the class "px", which draws them with sharp pixels (wiki.css) */
+    pixelArt: /\/Sprites\//i
   };
+
+  /* PICTURE VERSIONS: buttons above an infobox's picture that switch it to another version of the
+     person, e.g. their pixel sprite or a photo of them when younger. Each version is an empty element
+     at the top of the infobox:
+       <aside class="infobox" data-image="spinzle" data-caption="…">
+         <div class="version" data-label="Sprite" data-image="spinzle_sprite"></div>
+     data-label is the button's word, data-image the picture's code, and data-caption (optional) the
+     caption shown while that version is on. The infobox's own picture is the first button, called
+     "Portrait" unless the infobox says otherwise with data-image-label. A version whose picture is pixel
+     art (see pixelArt above) stands on a small glowing stage, enlarged by whole pixels so it stays sharp;
+     its glow is --sprite-glow and --sprite-pulse in wiki.css. */
+  var VERSION_MAIN_LABEL = 'Portrait';
 
   /* PARTY GLOWS: any of these words outside quotes glows in its party's
      colour (colours live in wiki.css). Bare words such as "Original", "Home",
@@ -211,13 +228,20 @@
   });
 
   /* ---------- infobox: <aside class="infobox" data-image="code" data-caption="…"> ---------- */
-  var pendingPortraits = [];
+  var pendingPortraits = [], pendingVersions = [];
   var ORDINAL = /^\s*(\d+(?:st|nd|rd|th)(?:\s*(?:&|and)\s*\d+(?:st|nd|rd|th))*)\s+/;
   each(main.querySelectorAll('aside.infobox'), function (box) {
     var name = box.getAttribute('data-name') || titleText;
     var image = box.getAttribute('data-image');
     var caption = box.getAttribute('data-caption');
     box.setAttribute('aria-label', name + ' at a glance');
+    /* other versions of the picture: <div class="version" data-label="Sprite" data-image="…"> (see PICTURE VERSIONS) */
+    var versions = [];
+    each(box.querySelectorAll(':scope > .version'), function (v) {
+      box.removeChild(v);
+      var label = (v.getAttribute('data-label') || '').trim(), code = (v.getAttribute('data-image') || '').trim();
+      if (label && code) versions.push({ label: label, image: code, caption: v.getAttribute('data-caption') });
+    });
 
     var top = doc.createDocumentFragment();
     top.appendChild(el('div', 'ib-name')).textContent = name;
@@ -241,6 +265,7 @@
       if (caption) fig.appendChild(el('figcaption')).textContent = caption;
       top.appendChild(fig);
       pendingPortraits.push([fig.querySelector('img'), image, fig.querySelector('.frame')]);
+      if (versions.length) pendingVersions.push(pictureVersions(fig, name, caption, box.getAttribute('data-image-label') || VERSION_MAIN_LABEL, versions));
     }
 
     each(Array.prototype.slice.call(box.children), function (c) {
@@ -280,13 +305,18 @@
      'first' for the picture that matters most on the page, 'now' to load at once, or left out to wait
      until the reader scrolls near the picture. */
   var PX = { s: 90, t: 160, m: 320, l: 640, h: 1024 };
-  /* a picture kept on this site: its full-size address (on the address the reader is using) and file name */
+  /* a picture kept on this site: its full-size address (on the address the reader is using), file name and path */
   function sitePicture(url) {
     var u; try { u = new URL(url, location.href); } catch (e) { return null; }
     if (u.host !== location.host && SITE_PICTURES.hosts.indexOf(u.hostname) < 0) return null;
     var file = u.pathname.split('/').pop();
     if (!/\.(jpe?g|png|webp)$/i.test(file)) return null;
-    return { full: new URL(u.pathname, location.href).href, file: file };
+    return { full: new URL(u.pathname, location.href).href, file: file, path: u.pathname };
+  }
+  /* pixel art on this site (see pixelArt in SITE PICTURES) */
+  function isPixelArt(url) {
+    var site = url ? sitePicture(url) : null;
+    return !!site && SITE_PICTURES.pixelArt.test(site.path);
   }
   function smallerCopy(url, size) {
     var site = sitePicture(url), folder = SITE_PICTURES.sizes[size];
@@ -296,10 +326,12 @@
   }
   function loadImage(img, url, failTarget, size, when) {
     if (!url) { failTarget.classList.add('fail'); return; }
-    var site = sitePicture(url);
+    var site = sitePicture(url), pixel = isPixelArt(url);
     var proxy = 'https://images.weserv.nl/?url=' + encodeURIComponent(url.replace(/^https?:\/\//, ''));
     if (PX[size]) proxy += '&w=' + PX[size] + '&h=' + PX[size] + '&we';
-    var sources = (site ? [smallerCopy(url, size), site.full] : [smallerCopy(url, size), url, proxy]).filter(Boolean), tried = 0;
+    /* pixel art always loads at its own size: a smaller copy would only blur it */
+    var sources = (pixel ? [site.full] : site ? [smallerCopy(url, size), site.full] : [smallerCopy(url, size), url, proxy]).filter(Boolean), tried = 0;
+    img.classList.toggle('px', pixel);
     img.decoding = 'async';
     if (when === 'first') img.setAttribute('fetchpriority', 'high');
     else if (when !== 'now') img.loading = 'lazy';
@@ -350,6 +382,80 @@
   }
 
   pendingPortraits.forEach(function (p) { showImage(p[0], p[1], p[2], PICTURE_SIZE.infobox, 'first'); });
+  pendingVersions.forEach(function (start) { start(); });
+
+  /* ---------- PICTURE VERSIONS: the buttons above an infobox's picture ----------
+     Builds the buttons and one layer per version inside the picture's frame. The frame keeps the size
+     of the infobox's own picture (which stays in place, hidden), so the infobox never jumps when the
+     reader switches. Returns a function that starts loading once the image codes can be read: pixel
+     art at once (it is tiny), photos when the reader points at or picks their button. */
+  function pictureVersions(fig, name, caption, mainLabel, versions) {
+    var frame = fig.querySelector('.frame'), cap = fig.querySelector('figcaption'), capHTML = null;
+    if (!cap && versions.some(function (v) { return v.caption; })) { cap = fig.appendChild(el('figcaption')); cap.hidden = true; }
+    var bar = el('div', 'ib-vers'), buttons = [];
+    bar.setAttribute('role', 'group');
+    bar.setAttribute('aria-label', 'Pictures of ' + name);
+    [{ label: mainLabel }].concat(versions).forEach(function (v, i) {
+      var b = el('button', 'ib-ver');
+      b.type = 'button';
+      b.textContent = v.label;
+      b.setAttribute('aria-pressed', i ? 'false' : 'true');
+      b.addEventListener('click', function () { choose(i); });
+      bar.appendChild(b); buttons.push(b);
+      if (!i) return;
+      v.layer = el('div', 'ib-alt', '<img alt="" referrerpolicy="no-referrer"><b class="alt-letter" aria-hidden="true"></b>');
+      v.layer.firstChild.alt = v.label + ' of ' + name;
+      v.layer.lastChild.textContent = name.charAt(0).toUpperCase();
+      frame.insertBefore(v.layer, frame.querySelector('.scan'));
+      b.addEventListener('pointerenter', function () { load(v); });
+      b.addEventListener('focus', function () { load(v); });
+    });
+    fig.insertBefore(bar, fig.firstChild);
+
+    function load(v) {
+      if (v.started) return;
+      v.started = true;
+      var img = v.layer.firstChild;
+      img.addEventListener('load', function () { fit(v); });
+      resolveImage(v.image).then(function (url) {
+        v.layer.classList.toggle('sprite', isPixelArt(url));
+        loadImage(img, url, v.layer, PICTURE_SIZE.infobox, 'now');
+      });
+    }
+    /* a sprite is enlarged by a whole number of times, as large as fits, and stands near the bottom of the
+       frame; the stage's faint pixel grid lines up with its pixels */
+    function fit(v) {
+      var img = v.layer.firstChild, W = v.layer.clientWidth, H = v.layer.clientHeight;
+      if (!v.layer.classList.contains('sprite') || !img.naturalWidth || !W) return;
+      var floor = 26, nw = img.naturalWidth, nh = img.naturalHeight;
+      var k = Math.max(1, Math.floor(Math.min((W - 12) / nw, (H - floor) / nh)));
+      var w = nw * k, h = nh * k, x = Math.round((W - w) / 2), y = Math.max(0, H - floor - h);
+      img.style.width = w + 'px'; img.style.height = h + 'px';
+      img.style.left = x + 'px'; img.style.top = y + 'px';
+      v.layer.style.setProperty('--px', k + 'px');
+      v.layer.style.setProperty('--sx', x + 'px');
+      v.layer.style.setProperty('--sy', y + 'px');
+      v.layer.style.setProperty('--feet', (y + h) + 'px');
+      img.classList.add('fit');
+    }
+    function choose(i) {
+      buttons.forEach(function (b, j) { b.setAttribute('aria-pressed', i === j ? 'true' : 'false'); });
+      frame.classList.toggle('alt-on', i > 0);
+      versions.forEach(function (v, j) { v.layer.classList.toggle('on', j === i - 1); });
+      if (i) { load(versions[i - 1]); fit(versions[i - 1]); }
+      if (cap) {
+        if (capHTML === null) capHTML = cap.hidden ? '' : cap.innerHTML;
+        var own = i ? versions[i - 1].caption : null;
+        if (own) cap.textContent = own; else cap.innerHTML = capHTML;
+        cap.hidden = !(own || capHTML);
+      }
+    }
+    return function () {
+      versions.forEach(function (v) {
+        resolveImage(v.image).then(function (url) { if (isPixelArt(url)) load(v); });
+      });
+    };
+  }
 
   /* pictures elsewhere on a page: <img data-image="code" alt="…"> (the gallery tiles on Faces_of_Ninzard.html are these too) */
   each(main.querySelectorAll('img[data-image]'), function (img) {
