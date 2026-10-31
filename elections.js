@@ -117,17 +117,57 @@
     });
   }
 
-  /* ---------- party colours, read from wiki.css (a span with the party's glow class) ---------- */
-  var rgbOf = {};
+  /* ---------- party colours, read from wiki.css ----------
+     The colour comes from the party's own rule in wiki.css (.or{color:var(--orie)}) and the value of
+     its variable on :root, not from the colour a test element ends up with on screen. A dark-mode
+     browser extension (Dark Reader) rewrites the page's colours, and on some loads it had not finished
+     when this ran: the test element came back in the extension's own text colour (#e8e6e3) and every
+     map, bar and table turned grey and white (found 31 October 2026). A test element is still the
+     fallback, used only when it shows a colour different from plain text. */
+  var rgbOf = {}, NEUTRAL = [125, 106, 150], ctx2d = null;
+  function toRGB(str) {
+    str = (str || '').trim();
+    if (!str) return null;
+    try {
+      if (!ctx2d) ctx2d = doc.createElement('canvas').getContext('2d');
+      ctx2d.fillStyle = '#010203';
+      ctx2d.fillStyle = str;
+      var v = String(ctx2d.fillStyle);
+      if (v === '#010203' && !/^#010203$/i.test(str)) return null;   /* not a colour */
+      var hex = v.match(/^#([0-9a-f]{6})$/i);
+      if (hex) return [0, 2, 4].map(function (i) { return parseInt(hex[1].substr(i, 2), 16); });
+      var n = v.match(/[\d.]+/g);
+      return n ? n.slice(0, 3).map(Number) : null;
+    } catch (e) { return null; }
+  }
+  function ruleColour(cls) {
+    var want = '.' + cls, found = null;
+    function search(sheet) {
+      var rules; try { rules = sheet.cssRules; } catch (e) { return; }
+      if (rules) each(rules, function (r) { if (!found && r.selectorText === want && r.style && r.style.color) found = r.style.color; });
+    }
+    /* wiki.css first, so an extension's copies of the rule are never the ones read */
+    each(doc.styleSheets, function (sh) { if (!found && /(^|\/)wiki\.css(\?|#|$)/.test(sh.href || '')) search(sh); });
+    each(doc.styleSheets, function (sh) { if (!found && !(sh.ownerNode && /darkreader/i.test(sh.ownerNode.className || ''))) search(sh); });
+    if (!found) return null;
+    var v = found.trim(), m = v.match(/^var\(\s*(--[\w-]+)\s*(?:,\s*(.+))?\)$/);
+    if (m) v = getComputedStyle(doc.documentElement).getPropertyValue(m[1]).trim() || (m[2] || '');
+    return toRGB(v);
+  }
+  function probeColour(cls) {
+    var s = el('span', cls), plain = el('span');
+    s.style.cssText = plain.style.cssText = 'position:absolute;left:-9999px;top:0;animation:none';
+    body.appendChild(s); body.appendChild(plain);
+    var a = getComputedStyle(s).color, b = getComputedStyle(plain).color;
+    body.removeChild(s); body.removeChild(plain);
+    return a !== b ? toRGB(a) : null;
+  }
   function partyRGB(cls) {
-    if (!cls || cls === 'none') return [125, 106, 150];
+    if (!cls || cls === 'none') return NEUTRAL;
     if (!rgbOf[cls]) {
-      var s = el('span', cls);
-      s.style.cssText = 'position:absolute;left:-9999px;top:0;animation:none';
-      body.appendChild(s);
-      var m = getComputedStyle(s).color.match(/[\d.]+/g);
-      body.removeChild(s);
-      rgbOf[cls] = m ? m.slice(0, 3).map(Number) : [125, 106, 150];
+      var c = ruleColour(cls) || probeColour(cls);
+      if (!c) return NEUTRAL;   /* not cached, so a later call can still find the real colour */
+      rgbOf[cls] = c;
     }
     return rgbOf[cls];
   }
