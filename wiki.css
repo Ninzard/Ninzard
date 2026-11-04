@@ -381,24 +381,27 @@ td.code-pic.fail span{display:inline}
 .article code{font:500 .88em/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--accent);background:rgba(255,143,180,.08);padding:1px 5px}
 
 /* ================================================================
-   Portrait gallery (Faces_of_Ninzard.html): a collage of every portrait, six to a row.
+   Portrait gallery (Faces_of_Ninzard.html): a collage of every portrait, ten to a row
+   (since 4 November 2026; six before). The tiles' sizes for ten are in "Ten to a row" below,
+   all under .faces, because First_Generals.html, Parry_Staff_Team.html and the portal reuse .face-pic.
    <ul class="faces"><li><a class="face" href="Page_name.html">
      <span class="face-pic"><img data-image="code" alt="Name"><b>N</b></span>
      <span class="face-name">Name</span></a></li></ul>
    Use <div class="face"> instead of <a> for someone without a page.
    Every portrait is seen through the soft filter (--pic-* in the COLOURS block).
    ================================================================ */
-.board{position:relative;margin:22px 0 8px;padding:40px 24px 46px;border:1px solid var(--line);
+.board{position:relative;margin:22px 0 8px;padding:34px 16px 40px;border:1px solid var(--line);
   background:
     radial-gradient(600px 300px at 85% 0,rgba(255,143,180,.07),transparent 70%),
     linear-gradient(rgba(195,162,255,.045) 1px,transparent 1px) 0 0/28px 28px,
     linear-gradient(90deg,rgba(195,162,255,.045) 1px,transparent 1px) 0 0/28px 28px,
     var(--deck)}
 .board::before{content:"";position:absolute;left:-1px;right:-1px;top:-1px;height:2px;background:linear-gradient(90deg,var(--accent),rgba(195,162,255,.55) 55%,rgba(195,162,255,0))}
-.faces{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:36px 18px;counter-reset:face}
+.faces{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:26px 12px;counter-reset:face}
 .faces li{counter-increment:face;position:relative;z-index:1;
   transform:translateY(var(--drop,0)) rotate(var(--tilt,0deg));transition:transform .28s cubic-bezier(.2,.8,.2,1)}
-/* the scatter: tilts repeat every 7 tiles and drops every 5, so neither lines up with the 6 columns */
+/* the scatter: tilts repeat every 7 tiles and drops every 9, so neither lines up with the 10 columns
+   (drops repeated every 5 when there were six columns; 5 divides 10, so they would now form columns) */
 .faces li:nth-child(7n+1){--tilt:-2.4deg}
 .faces li:nth-child(7n+2){--tilt:1.7deg}
 .faces li:nth-child(7n+3){--tilt:-.9deg}
@@ -406,10 +409,13 @@ td.code-pic.fail span{display:inline}
 .faces li:nth-child(7n+5){--tilt:-1.6deg}
 .faces li:nth-child(7n+6){--tilt:.8deg}
 .faces li:nth-child(7n){--tilt:-2deg}
-.faces li:nth-child(5n+1){--drop:8px}
-.faces li:nth-child(5n+2){--drop:-6px}
-.faces li:nth-child(5n+4){--drop:4px}
-.faces li:hover,.faces li:focus-within{z-index:3;transform:translateY(-6px) rotate(0deg) scale(1.06)}
+.faces li:nth-child(9n+1){--drop:5px}
+.faces li:nth-child(9n+2){--drop:-4px}
+.faces li:nth-child(9n+4){--drop:3px}
+.faces li:nth-child(9n+5){--drop:-2px}
+.faces li:nth-child(9n+6){--drop:4px}
+.faces li:nth-child(9n+8){--drop:-3px}
+.faces li:hover,.faces li:focus-within{z-index:3;transform:translateY(-5px) rotate(0deg) scale(1.12)}
 .face{display:block;color:inherit;text-decoration:none!important}
 .face-pic{position:relative;display:block;aspect-ratio:4/5;padding:6px;background:linear-gradient(180deg,var(--deck2),#12091d);
   border:1px solid var(--line);box-shadow:0 10px 22px rgba(0,0,0,.45);overflow:hidden;transition:box-shadow .28s ease,border-color .28s ease}
@@ -441,6 +447,31 @@ a.face .face-name{color:var(--link)}
 a.face:hover .face-name{color:#e4d4ff;text-shadow:0 0 10px rgba(195,162,255,.45)}
 /* the short dashes either side of a name; for a long name they move in closer so it stays on one line */
 .face-name::before,.face-name::after{content:"";flex:0 1 14px;min-width:0;height:1px;background:linear-gradient(currentColor,currentColor) center/6px 1px no-repeat;opacity:.45}
+
+/* Ten to a row (4 November 2026, the user's request): each tile is about 70px wide, so inside the gallery the
+   frame, number, corners, letter and name are scaled down to match. Only .faces is touched, so the cards on
+   First_Generals.html and Parry_Staff_Team.html and the portal's windows keep the sizes above. A name that
+   still doesn't fit on one line at 11px (Power of Greed, KatDoesMuch, Al Commando) is made a little smaller
+   by the gallery page's own script, never wrapped. */
+.faces .face-pic{padding:4px;box-shadow:0 6px 14px rgba(0,0,0,.45)}
+.faces .face-pic img,.faces .face-pic b{inset:4px;width:calc(100% - 8px);height:calc(100% - 8px)}
+.faces .face-pic b{font-size:30px}
+.faces .face-pic::before{left:4px;top:4px;padding:1px 4px 0;font-size:8px;letter-spacing:.05em}
+.faces .face-pic::after{padding:4px;
+  background:
+    linear-gradient(var(--accent),var(--accent)) top left/9px 2px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) top left/2px 9px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) top right/9px 2px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) top right/2px 9px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) bottom left/9px 2px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) bottom left/2px 9px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) bottom right/9px 2px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) bottom right/2px 9px no-repeat,
+    linear-gradient(180deg,transparent 0 45%,rgba(255,143,180,.26) 49.5%,transparent 50.5%) 0 100%/100% 300% no-repeat,
+    var(--pic-fx)}
+.faces li:hover .face-pic{box-shadow:0 10px 22px rgba(0,0,0,.55),0 0 14px rgba(255,143,180,.22)}
+.faces .face-name{margin-top:7px;font-size:11px;letter-spacing:.01em}
+.faces .face-name::before,.faces .face-name::after{flex-basis:10px;background-size:5px 1px}
 
 /* ================================================================
    Pictures: the soft filter, on every picture the wiki shows.
