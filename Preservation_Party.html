@@ -5,32 +5,78 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Preservation Party</title>
 <link rel="stylesheet" href="wiki.css">
+<style>
+/* The party's logo in the infobox (this page only). The logo is pixel art (Images/Sprites), so it is drawn at
+   exactly 3x its 96-pixel grid, centered on a night-blue stage, with a blue glow that pulses slowly.
+   Class names start with "crest" (never "top", "in" or a party's glow class such as "pv" or "pp"). */
+.infobox.crest .frame{display:grid;place-items:center;margin:6px 0 0;padding:18px 0 20px;
+  background:
+    radial-gradient(ellipse 70% 10% at 50% 97%,rgba(224,130,32,.16),transparent 80%),
+    radial-gradient(circle at 50% 50%,rgba(3,90,252,.32),rgba(3,90,252,.10) 46%,transparent 70%),
+    #060a1c}
+.infobox.crest .frame > img{width:288px;height:288px;image-rendering:pixelated;
+  filter:drop-shadow(0 0 2px rgba(200,222,255,.95)) drop-shadow(0 0 10px rgba(64,128,255,.8)) drop-shadow(0 0 26px rgba(3,90,252,.6));
+  animation:crestGlow 4.5s ease-in-out infinite}
+@keyframes crestGlow{50%{filter:drop-shadow(0 0 3px rgba(222,236,255,1)) drop-shadow(0 0 16px rgba(90,150,255,.95)) drop-shadow(0 0 38px rgba(3,90,252,.78))}}
+.infobox.crest .frame::after{background:
+  repeating-linear-gradient(180deg,rgba(0,0,0,.10) 0 1px,transparent 1px 3px),
+  radial-gradient(ellipse at 50% 50%,transparent 60%,rgba(2,4,14,.5) 100%)}
+.infobox.crest .frame .scan{background:linear-gradient(180deg,transparent,rgba(90,150,255,.08) 60%,rgba(120,170,255,.22) 62%,transparent 64%)}
+.infobox.crest .frame-wrap::after{
+  background:
+    linear-gradient(#e08220,#e08220) top left/18px 2px no-repeat,
+    linear-gradient(#e08220,#e08220) top left/2px 18px no-repeat,
+    linear-gradient(#e08220,#e08220) top right/18px 2px no-repeat,
+    linear-gradient(#e08220,#e08220) top right/2px 18px no-repeat,
+    linear-gradient(#e08220,#e08220) bottom left/18px 2px no-repeat,
+    linear-gradient(#e08220,#e08220) bottom left/2px 18px no-repeat,
+    linear-gradient(#e08220,#e08220) bottom right/18px 2px no-repeat,
+    linear-gradient(#e08220,#e08220) bottom right/2px 18px no-repeat}
+.infobox.crest .fallback{width:100%;color:var(--pres);background:radial-gradient(circle at 50% 42%,rgba(3,90,252,.28),transparent 62%)}
+/* the gold square in the Colors row: the Resistance Party's gold */
+.swatch.gilt{color:#e08220}
+.hex{font:500 12px/1 var(--disp);letter-spacing:.04em;color:var(--mute)}
+@media (prefers-reduced-motion:reduce){.infobox.crest .frame > img{animation:none}}
+</style>
 </head>
-<body data-edited="11 October 2026">
+<body data-edited="5 November 2026">
 
 <h1>Preservation Party</h1>
 
 <div class="hatnote">“Preservates” and “Blue Party” redirect here.</div>
 
-<aside class="infobox" data-party="pv">
+<blockquote class="hero" data-label="From the Archives, 22 August 2026">
+  <p>When the Poka Administration assumed control on 2 July 2026, the Preservation Party, led by General Woofer, was predominantly a formidable and unified entity, arguably the most robust institutional structure Ninzard had ever encountered.</p>
+  <footer>— <b>Vice President Hackman</b>, <i class="no-name">“The Poka Preservates”</i></footer>
+</blockquote>
+
+<aside class="infobox crest" data-party="pv" data-image="preservation_logo" data-caption="Adelynn, the party's mascot, as a Preservate knight">
   <h3>Governing party of the Ninzard Project</h3>
   <dl>
     <dt>Boss</dt><dd><a href="Woofer.html">Woofer</a></dd>
-    <dt>Founders</dt><dd><a href="Syn.html">Syn</a><br><a href="Cyntaku.html">Cyntaku</a><br><a href="Grace.html">Grace</a></dd>
-    <dt>Founded</dt><dd class="plain">1 October 2020</dd>
+    <dt>Founders</dt><dd>Syn<br><a href="Cyntaku.html">Cyntaku</a><br><a href="Grace.html">Grace</a></dd>
+    <dt>Founded</dt><dd class="plain">22 September 2020</dd>
     <dt>Members</dt><dd class="plain">Preservates</dd>
-    <dt>Leadership</dt><dd class="plain">Preservate Apparatus</dd>
+    <dt>Leadership</dt><dd class="plain">The Preservate Apparatus</dd>
     <dt>Ideology</dt><dd class="plain">Preservation of the community<br>Member safety and health<br>Rule-based moderation<br>Isolationism <small>(2020–2022)</small></dd>
     <dt>Factions</dt><dd class="plain">Pragma Flank<br>Logos Flank<br>Axiom Flank</dd>
     <dt>Presidents</dt><dd><a href="Apollos.html">Apollos</a> <small>(2025–2026)</small><br><a href="Poka.html">Poka</a> <small>(2026–present)</small></dd>
-    <dt>Colour</dt><dd class="plain"><span class="swatch pv"></span>Blue</dd>
+    <dt>Colors</dt><dd class="plain"><span class="swatch pv"></span>Blue <span class="hex">#035AFC</span><br><span class="swatch gilt"></span>Gold <span class="hex">#E08220</span> <small>(accent)</small></dd>
+    <dt>Symbol</dt><dd class="plain">Plus in a circle</dd>
+    <dt>Mascot</dt><dd>Adelynn</dd>
     <dt>Legislature XII</dt><dd class="plain">11 / 12</dd>
   </dl>
 </aside>
 
-<p>The <b>Preservation Party</b> (PP), whose members are known as <b>Preservates</b> and which is sometimes called the <b>Blue Party</b> after its colour, is the governing party of the Ninzard Project. It was founded on 1 October 2020 by <a href="Syn.html">Syn</a>, <a href="Cyntaku.html">Cyntaku</a> and <a href="Grace.html">Grace</a> as an isolationist opposition determined to protect the community from the toxicity of the Underground, and has been one of the community's two major parties ever since, alongside the Original Party.<sup class="ref">1,2</sup></p>
+<p>The <b>Preservation Party</b> (<span class="pv">PP</span>), whose members are known as <b>Preservates</b> and which is sometimes called the <b><span class="pv">Blue Party</span></b> after its color, is the governing party of the Ninzard Project. It was founded on 22 September 2020 by Syn, <a href="Cyntaku.html">Cyntaku</a> and <a href="Grace.html">Grace</a> as an isolationist opposition determined to protect the community from the toxicity of the Underground, and has been one of the community's two major parties ever since, alongside the Original Party.<sup class="ref">1,2</sup></p>
 
 <p>The party has passed through three eras: the isolationism of its founders; the “Logos” era of <a href="Adelynn.html">Adelynn</a>, Governor of Nightwork from 2023 to 2024, who turned its norms into a moral and bureaucratic framework for governing; and the results-driven “Pragma” era that began when <a href="Apollos.html">Apollos</a> took it over in 2025.<sup class="ref">2</sup> Under Apollos and his successor, <a href="Poka.html">Poka</a>, it won the presidency twice, the Charter of the Ninzard Project and the largest victories in the community's history. Its Boss since 14 March 2026 has been <a href="Woofer.html">Woofer</a>.<sup class="ref">3,4,5</sup></p>
+
+<section>
+<h2 id="symbols">Symbols</h2>
+
+<p>Blue (#035AFC) is the party's color, and the Preservates are sometimes called the <span class="pv">Blue Party</span> because of it.<sup class="ref">6</sup> Its accent color is gold, the same gold (#E08220) as the Resistance Party's, and its emblem is a plus sign inside a circle. Its mascot is Adelynn, the party's 4th Boss, whose moral principles became the core ideals of its Logos Flank.<sup class="ref">2</sup> The party's logo shows her as a Preservate knight in a round blue badge ringed in gold: she stands before a gold-edged shield between gold scrollwork and white lilies, with the emblem at the bottom.</p>
+</section>
 
 <section>
 <h2 id="leadership">Leadership</h2>
@@ -40,10 +86,10 @@
 <tr><th>No.</th><th>Boss</th><th>Term</th></tr>
 </thead>
 <tbody>
-<tr><td>1</td><td><a href="Syn.html">Syn</a></td><td>1 October 2020 – 7 January 2022</td></tr>
-<tr><td>2</td><td><a href="Cyntaku.html">Cyntaku</a></td><td>7 January 2022 – 30 July 2022</td></tr>
+<tr><td>1</td><td>Syn</td><td>22 September 2020 – January 2022</td></tr>
+<tr><td>2</td><td><a href="Cyntaku.html">Cyntaku</a></td><td>January 2022 – 30 July 2022</td></tr>
 <tr><td>3</td><td><a href="Grace.html">Grace</a></td><td>30 July 2022 – 3 January 2023</td></tr>
-<tr><td>4</td><td><a href="Adelynn.html">Adelynn</a></td><td>January 2023 – 13 March 2026</td></tr>
+<tr><td>4</td><td><a href="Adelynn.html">Adelynn</a></td><td>3 January 2023 – 13 March 2026</td></tr>
 <tr><td>5</td><td><a href="Woofer.html">Woofer</a></td><td>14 March 2026 – present</td></tr>
 </tbody>
 </table>
@@ -58,6 +104,7 @@
 <li id="r3">Phase IV, §17.5.3 <i>“Winter 2025 Election Week.”</i></li>
 <li id="r4">Phase IV, §20.7.0 <i>“2026 Presidential Election Results.”</i></li>
 <li id="r5">Phase IV, §18.6.1 <i>“Goodbye Addie &amp; Grace”</i>; §18.6.2 <i>“Woofer, the New Boss.”</i></li>
+<li id="r6">Phase III, §11.4.2 <i>“General Sundaze.”</i></li>
 </ol>
 </section>
 
@@ -82,5 +129,12 @@
 <ul class="cats"><li>Political parties of the Ninzard Project</li><li>Preservation Party</li></ul>
 
 <script src="wiki.js"></script>
+<script>
+/* the logo's alt text (wiki.js calls every infobox picture a portrait) */
+(function () {
+  var img = document.querySelector('.infobox.crest .frame > img');
+  if (img) img.alt = 'Logo of the Preservation Party: Adelynn, its mascot, as a knight before a gold-edged shield with lilies, above the party emblem, in a blue badge ringed in gold';
+})();
+</script>
 </body>
 </html>

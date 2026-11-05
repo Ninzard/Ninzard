@@ -514,6 +514,11 @@ a.nm:hover .nm-t{text-shadow:var(--name-glow-hover);text-decoration:underline;te
 /* a dialogue's speaker keeps its rose colour; a quote's attribution its white */
 .qbox.dialogue p>b:first-child a.nm{color:inherit}
 .qbox footer b a.nm,.hero-by b a.nm{color:var(--ink)}
+/* a party with a logo (PARTY_ICONS in wiki.js) is linked at every mention, its logo as a tiny round icon before
+   the name, ringed in the party's own colour; a pixel-art logo is smoothed at this size instead of pixelated */
+a.pty{white-space:nowrap}
+a.pty .nm-pic{box-shadow:0 0 0 1px rgba(64,128,255,.6),0 0 6px rgba(3,90,252,.55)}
+.nm-pic img.px{image-rendering:auto}
 
 /* ================================================================
    Talk: the chatroom behind every page's Talk tab. wiki.js builds it
