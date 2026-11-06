@@ -11,8 +11,8 @@
        each row lighting up its district on the map;
      - the portraits at the head of endorsement panels;
      - the face-off banner at the head of a gubernatorial page: the voters'
-       silhouettes beside the VS, the sprites' blinking and the neon bar
-       of the result.
+       silhouettes beside the VS, the sprites lighting up when pointed at,
+       and the neon bar of the result.
    Everything shown is read from the page itself: candidates and votes
    from the results table, district shapes from the map's <svg>, the
    map's title from its data-plate. No election is written in here.
@@ -629,8 +629,8 @@
   /* ================================================================
      THE FACE-OFF BANNER: <figure class="bout"> (styles and markup in elections.css)
      The sprites are ordinary <img data-image> pictures that wiki.js loads; this adds
-     the voters' silhouettes beside the VS, varies each sprite's blink, and puts the
-     neon bar of the result under the stage. Everything is read from the two sides'
+     the voters' silhouettes beside the VS, lights a side up when its sprites are pointed
+     at, and puts the neon bar of the result under the stage. Everything is read from the two sides'
      data-party, data-votes, data-label and data-name.
      ================================================================ */
   /* how many silhouettes share the two crowds: each side gets its share of these */
@@ -727,32 +727,74 @@
     side.insertBefore(svg, side.firstChild);
     each(svg.querySelectorAll('.cg'), function (g) { g.style.animationDelay = (-rnd() * 2.8).toFixed(2) + 's'; });
   }
+  /* a small picture of a sprite's head for the bar: the 16x16 pixels from just above the scalp (the first
+     row of the face's columns with at least three filled pixels) down to the shoulders, drawn into `canvas`
+     once the sprite has loaded (wiki.js loads it from its image code, so it may not have a picture yet) */
+  function spriteHead(img, canvas, done) {
+    function draw() {
+      if (!img.naturalWidth) return;
+      var top = 5;
+      try {
+        var c = doc.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+        var cx = c.getContext('2d'); cx.drawImage(img, 0, 0);
+        var d = cx.getImageData(0, 0, c.width, c.height).data;
+        for (var y = 0; y < c.height; y++) {
+          var n = 0;
+          for (var x = 8; x < 24; x++) if (d[(y * c.width + x) * 4 + 3] > 0) n++;
+          if (n >= 3) { top = y; break; }
+        }
+      } catch (e) { /* keep the usual height */ }
+      canvas.width = 16; canvas.height = 16;
+      var k = canvas.getContext('2d');
+      k.imageSmoothingEnabled = false;
+      k.clearRect(0, 0, 16, 16);
+      k.drawImage(img, 8, Math.max(0, top - 1), 16, 16, 0, 0, 16, 16);
+      if (done) done();
+    }
+    if (img.complete && img.naturalWidth) draw(); else img.addEventListener('load', draw);
+  }
   function boutBar(fig, sides, votes, sum) {
     var won = votes[0] === votes[1] ? -1 : votes[0] > votes[1] ? 0 : 1;
     var wonLabel = fig.getAttribute('data-won-label') || 'Elected';
     var tally = el('div', 'bout-tally dark');
     tally.setAttribute('role', 'group');
     tally.setAttribute('aria-label', 'Result');
-    var rowHtml = '';
-    function end(i) {
-      var s = sides[i], party = esc(s.getAttribute('data-party') || 'none'), share = votes[i] / sum * 100;
-      return '<div class="bt-end" data-party="' + party + '">' +
+    function party(i) { return esc(sides[i].getAttribute('data-party') || 'none'); }
+    /* above the bar: the side's word and its name, with the head of its first sprite on the outer side */
+    function top(i) {
+      var s = sides[i], name = s.getAttribute('data-name');
+      var head = s.querySelector('.bout-sp') ? '<span class="bt-head" aria-hidden="true"><canvas class="open"></canvas><canvas class="shut"></canvas></span>' : '';
+      return '<div class="bt-end" data-party="' + party(i) + '">' +
         '<b class="bt-party">' + esc(s.getAttribute('data-label') || '') + '</b>' +
-        (s.getAttribute('data-name') ? '<span class="bt-name">' + esc(s.getAttribute('data-name')) + '</span>' : '') +
-        '<span class="bt-votes pn" data-party="' + party + '">' + num(votes[i]) + '</span>' +
-        '<span class="bt-pct">' + pct(share) + '</span>' +
+        (name ? '<span class="bt-who">' + head + '<span class="bt-name">' + esc(name) + '</span></span>' : '') + '</div>';
+    }
+    /* below the bar: the votes, the share beneath them, and the winner's tag (an invisible one on the other side) */
+    function bottom(i) {
+      return '<div class="bt-end" data-party="' + party(i) + '">' +
+        '<span class="bt-votes pn" data-party="' + party(i) + '">' + num(votes[i]) + '</span>' +
+        '<span class="bt-pct">' + pct(votes[i] / sum * 100) + '</span>' +
         '<span class="bt-won' + (won === i ? '"' : ' ghost" aria-hidden="true"') + '>' + esc(wonLabel) + '</span></div>';
     }
-    rowHtml = '<div class="bt-row">' + end(0) + '<span class="bt-mid">' + num(sum) + ' votes</span>' + end(1) + '</div>';
     var at = votes[0] / sum * 100;
-    tally.innerHTML = rowHtml +
+    tally.innerHTML =
+      '<div class="bt-row bt-top">' + top(0) + '<span class="bt-mid">' + num(sum) + ' total votes</span>' + top(1) + '</div>' +
       '<div class="bt-track"><div class="bt-lane">' +
-      '<span class="bt-tube" data-party="' + esc(sides[0].getAttribute('data-party') || 'none') + '" style="--w:' + at.toFixed(2) + '%"></span>' +
-      '<span class="bt-tube r" data-party="' + esc(sides[1].getAttribute('data-party') || 'none') + '" style="--w:' + (100 - at).toFixed(2) + '%"></span>' +
+      '<span class="bt-tube" data-party="' + party(0) + '" style="--w:' + at.toFixed(2) + '%"></span>' +
+      '<span class="bt-tube r" data-party="' + party(1) + '" style="--w:' + (100 - at).toFixed(2) + '%"></span>' +
       '<i class="bt-half" aria-hidden="true"></i><i class="bt-meet" aria-hidden="true" style="--at:' + at.toFixed(2) + '%"></i>' +
-      '</div></div>';
+      '</div></div>' +
+      '<div class="bt-row bt-bottom">' + bottom(0) + bottom(1) + '</div>';
     var cap = fig.querySelector(':scope > figcaption');
     fig.insertBefore(tally, cap);
+    /* the head icons: eyes open, and the closed-eye frame for when the side is pointed at */
+    var heads = tally.querySelectorAll('.bt-top .bt-end');
+    sides.forEach(function (s, i) {
+      var box = heads[i].querySelector('.bt-head'), sp = s.querySelector('.bout-sp');
+      if (!box || !sp) return;
+      var base = sp.querySelector('img:not(.bout-eye)'), eye = sp.querySelector('img.bout-eye');
+      if (base) spriteHead(base, box.querySelector('.open'), function () { box.classList.add('ok'); });
+      if (eye) spriteHead(eye, box.querySelector('.shut'));
+    });
     /* the tubes light up from the two ends when the bar comes into view */
     var light = function () { tally.classList.remove('dark'); };
     if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) light();
@@ -760,6 +802,32 @@
       var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { light(); io.disconnect(); } }); }, { threshold: 0.4 });
       io.observe(tally);
     } else light();
+    return tally;
+  }
+  /* pointing at either sprite of a side lights that side up (see elections.css); a tap does the same on a
+     touch screen, and a tap anywhere else puts it out */
+  function boutHover(fig, sides, tally) {
+    var ends = tally ? tally.querySelectorAll('.bt-end') : [];
+    function set(i, on) {
+      sides[i].classList.toggle('lit', on);
+      if (ends[i]) ends[i].classList.toggle('lit', on);
+      if (ends[i + 2]) ends[i + 2].classList.toggle('lit', on);
+    }
+    sides.forEach(function (side, i) {
+      each(side.querySelectorAll('.bout-sp'), function (sp) {
+        sp.addEventListener('pointerenter', function (e) { if (e.pointerType !== 'touch') set(i, true); });
+        sp.addEventListener('pointerleave', function (e) { if (e.pointerType !== 'touch') set(i, false); });
+        sp.addEventListener('pointerdown', function (e) {
+          if (e.pointerType !== 'touch') return;
+          var on = !side.classList.contains('lit');
+          set(0, false); set(1, false);
+          if (on) set(i, true);
+        });
+      });
+    });
+    doc.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'touch' && !(e.target.closest && e.target.closest('.bout-sp'))) { set(0, false); set(1, false); }
+    });
   }
   each(main.querySelectorAll('figure.bout'), function (fig) {
     var stage = fig.querySelector('.bout-stage');
@@ -771,19 +839,22 @@
     var lc = getComputedStyle(sides[0]).getPropertyValue('--pc').trim(), rc = getComputedStyle(sides[1]).getPropertyValue('--pc').trim();
     if (lc) fig.style.setProperty('--lc', lc);
     if (rc) fig.style.setProperty('--rc', rc);
-    /* every sprite blinks on its own rhythm, now and then twice */
+    /* for <figure class="bout blinks"> only: every sprite blinks on its own rhythm, now and then twice */
     each(fig.querySelectorAll('.bout-sp'), function (sp) {
       sp.style.setProperty('--bd', (4.2 + rnd() * 3.4).toFixed(2) + 's');
       sp.style.setProperty('--bdl', (-rnd() * 7).toFixed(2) + 's');
       if (rnd() < 0.35) sp.classList.add('dbl');
     });
-    if (!sum) return;
-    var shares = votes.map(function (v) { return v / sum * CROWD; });
-    var counts = shares.map(Math.floor), left = CROWD - counts[0] - counts[1];
-    if (left > 0) counts[shares[0] - counts[0] >= shares[1] - counts[1] ? 0 : 1] += left;
-    counts = counts.map(function (c) { return Math.max(1, c); });
-    sides.forEach(function (s, i) { crowd(s, counts[i], rnd, !s.querySelector('.bout-sp')); });
-    boutBar(fig, sides, votes, sum);
+    var tally = null;
+    if (sum) {
+      var shares = votes.map(function (v) { return v / sum * CROWD; });
+      var counts = shares.map(Math.floor), left = CROWD - counts[0] - counts[1];
+      if (left > 0) counts[shares[0] - counts[0] >= shares[1] - counts[1] ? 0 : 1] += left;
+      counts = counts.map(function (c) { return Math.max(1, c); });
+      sides.forEach(function (s, i) { crowd(s, counts[i], rnd, !s.querySelector('.bout-sp')); });
+      tally = boutBar(fig, sides, votes, sum);
+    }
+    boutHover(fig, sides, tally);
   });
 
   /* ---------- draw the maps: full maps first, then copies of them ---------- */

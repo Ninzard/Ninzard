@@ -268,7 +268,9 @@
    Face-off banner at the head of a gubernatorial page (5 November 2026):
    the candidates' sprites at the two ends of a full-width stage, the
    voters as pixel silhouettes beside the VS, and a neon bar of the
-   result underneath. The sprites only stare and blink; nothing bobs.
+   result underneath. The sprites stand still and stare; pointing at a
+   side's sprites closes their eyes and makes them glow in their party's
+   colour. Nothing bobs.
    <figure class="bout no-name">
      <div class="bout-stage">
        <div class="bout-side" data-party="or" data-votes="372" data-label="Original" data-name="Aceiron">
@@ -282,8 +284,10 @@
    </figure>
    The first side stands on the left, the second on the right. elections.js
    draws the silhouettes (one figure per share of 24, so a landslide shows as
-   a bigger crowd) and the bar from data-votes, data-label and data-name; a
-   figure's data-won-label (default "Elected") names the winner's tag.
+   a bigger crowd) and the bar from data-votes, data-label and data-name (the
+   name above the bar with the head of the side's first sprite beside it, the
+   votes and share below it); a figure's data-won-label (default "Elected")
+   names the winner's tag.
    Sprites stay at a whole-number scale (4x) so their pixels stay square.
    ================================================================ */
 .bout{--lc:var(--orie);--rc:var(--pres);margin:4px 0 24px;clear:both}
@@ -320,9 +324,10 @@
 .bout-crowd .cg{fill:color-mix(in srgb,var(--pc) 55%,#fff);filter:drop-shadow(0 0 2px var(--pc)) drop-shadow(0 0 5px var(--pc));animation:boutStick 2.8s ease-in-out infinite}
 @keyframes boutStick{50%{opacity:.5}}
 /* the candidates */
-.bout-sp{position:absolute;bottom:12px;width:128px;height:160px;z-index:3}
+.bout-sp{position:absolute;bottom:12px;width:128px;height:160px;z-index:3;
+  filter:drop-shadow(0 0 0 var(--pc)) drop-shadow(0 0 0 var(--pc));transition:filter .35s ease}
 .bout-sp img{position:absolute;inset:0;display:block;width:100%;height:100%;margin:0;image-rendering:pixelated;
-  filter:var(--pic-filter) drop-shadow(0 0 6px color-mix(in srgb,var(--pc) 75%,transparent))}
+  filter:var(--pic-filter);transition:filter .35s ease}
 .bout-sp::after{content:"";position:absolute;left:24%;right:24%;bottom:-6px;height:12px;border-radius:50%;z-index:-1;
   background:radial-gradient(closest-side,color-mix(in srgb,var(--pc) 70%,transparent),transparent)}
 .bout-side:first-child .bout-sp{left:46px}
@@ -330,13 +335,25 @@
 .bout-sp.mate{bottom:34px;z-index:2}
 .bout-side:first-child .bout-sp.mate{left:0}
 .bout-side:last-child .bout-sp.mate{right:0}
-.bout-sp.mate img{filter:var(--pic-filter) brightness(.82) drop-shadow(0 0 5px color-mix(in srgb,var(--pc) 60%,transparent))}
-/* blinking: the closed-eye frame shows for an eighth of a second now and then (elections.js varies the rhythm) */
-.bout-sp .bout-eye{opacity:0;animation:boutBlink var(--bd,5.3s) steps(1,end) var(--bdl,0s) infinite}
-.bout-sp.dbl .bout-eye{animation-name:boutBlink2}
-.bout-side:last-child .bout-sp .bout-eye{--bd:6.1s;--bdl:-2.3s}
-.bout-sp.mate .bout-eye{--bd:4.7s;--bdl:-3.4s}
+.bout-sp.mate img{filter:var(--pic-filter) brightness(.82)}
+/* at rest the sprites stare, eyes open. Pointing at either sprite of a side (or tapping it) gives the side
+   the class "lit" (elections.js): both sprites close their eyes and glow in their party's colour, swelling
+   slowly while the pointer stays, and the backlight, the name and the head icon in the bar light up too. */
+.bout-sp .bout-eye{opacity:0}
 .bout-sp .bout-eye:not([src]),.bout-sp .bout-eye.fail{visibility:hidden}
+.bout-side.lit .bout-sp .bout-eye{opacity:1}
+.bout-side.lit .bout-sp{filter:drop-shadow(0 0 3px var(--pc)) drop-shadow(0 0 10px var(--pc));
+  animation:boutGlow 1.8s ease-in-out .35s infinite alternate}
+.bout-side.lit .bout-sp.mate img{filter:var(--pic-filter)}
+/* only the blur changes and the colours are plain party colours: Chrome mis-blends color-mix() colours
+   inside an animated filter (a red glow turned yellow, a blue one green) */
+@keyframes boutGlow{to{filter:drop-shadow(0 0 5px var(--pc)) drop-shadow(0 0 22px var(--pc))}}
+.bout-side::before{transition:filter .35s ease}
+.bout-side.lit::before{filter:brightness(1.35) saturate(1.2)}
+/* optional: <figure class="bout blinks"> makes the sprites blink now and then while no one points at them
+   (elections.js varies each sprite's rhythm); no page uses it at the moment */
+.bout.blinks .bout-side:not(.lit) .bout-sp .bout-eye{animation:boutBlink var(--bd,5.3s) steps(1,end) var(--bdl,0s) infinite}
+.bout.blinks .bout-side:not(.lit) .bout-sp.dbl .bout-eye{animation-name:boutBlink2}
 @keyframes boutBlink{0%{opacity:0}94%{opacity:1}96.4%{opacity:0}100%{opacity:0}}
 @keyframes boutBlink2{0%{opacity:0}89%{opacity:1}91.4%{opacity:0}93.6%{opacity:1}96%{opacity:0}100%{opacity:0}}
 /* the VS, white because it belongs to no party, split faintly into the two sides' colours */
@@ -355,15 +372,30 @@
 .bout figcaption{margin-top:9px;text-align:center;font-size:13px;color:var(--mute)}
 
 /* ---------- the neon bar of the result, under the stage (built by elections.js) ---------- */
-.bout-tally{margin-top:14px;padding:0 2px 16px}
-.bt-row{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:12px}
+.bout-tally{margin-top:14px;padding:0 2px 4px}
+.bt-row{display:flex;justify-content:space-between;gap:16px}
+.bt-top{align-items:flex-end;margin-bottom:12px}
+.bt-bottom{align-items:flex-start;margin-top:12px}
 /* the two ends are equal-width columns, each centered, so the result reads as a mirror image */
-.bt-end{flex:none;width:220px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
+.bt-end{flex:none;width:220px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:7px}
 .bt-party{padding-left:.16em;font:700 24px/1 var(--disp);letter-spacing:.16em;text-transform:uppercase;color:var(--pc);text-shadow:var(--pg);animation:pnGlow 3.4s ease-in-out infinite}
-.bt-name{font:600 15px/1 var(--disp);color:var(--ink)}
-.bt-votes{margin-top:2px;font:700 32px/1 var(--disp)}
+/* the name: white text glowing in the party's colour; the head icon sits on the outer side */
+.bt-who{display:flex;align-items:center;gap:10px}
+.bt-end:last-child .bt-who{flex-direction:row-reverse}
+.bt-name{font:700 23px/1 var(--disp);letter-spacing:.02em;color:var(--ink);white-space:nowrap;
+  text-shadow:0 0 5px color-mix(in srgb,var(--pc) 95%,transparent),0 0 14px color-mix(in srgb,var(--pc) 70%,transparent),0 0 28px color-mix(in srgb,var(--pc) 35%,transparent)}
+.bt-end.lit .bt-name{text-shadow:0 0 6px var(--pc),0 0 18px var(--pc),0 0 36px color-mix(in srgb,var(--pc) 60%,transparent)}
+.bt-head{position:relative;flex:none;width:32px;height:32px;border-radius:7px;overflow:hidden;visibility:hidden;
+  background:radial-gradient(circle at 50% 70%,color-mix(in srgb,var(--pc) 32%,#0b0614),#07040c 75%);
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--pc) 75%,transparent),0 0 8px color-mix(in srgb,var(--pc) 50%,transparent)}
+.bt-head.ok{visibility:visible}
+.bt-head canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+.bt-head canvas.shut{opacity:0}
+.bt-end.lit .bt-head canvas.shut{opacity:1}
+.bt-end.lit .bt-head{box-shadow:0 0 0 1px var(--pc),0 0 12px var(--pc)}
+.bt-votes{font:700 32px/1 var(--disp)}
 .bt-pct{font:500 14px/1 var(--disp);letter-spacing:.04em;color:var(--mute)}
-.bt-won{margin-top:2px;padding:3px 7px 2px;border:1px solid rgba(255,255,255,.75);border-radius:3px;font:700 10px/1 var(--disp);letter-spacing:.2em;text-transform:uppercase;color:#fff;
+.bt-won{margin-top:1px;padding:3px 7px 2px;border:1px solid rgba(255,255,255,.75);border-radius:3px;font:700 10px/1 var(--disp);letter-spacing:.2em;text-transform:uppercase;color:#fff;
   box-shadow:var(--white-glow);text-shadow:0 0 6px rgba(255,255,255,.7)}
 /* the loser keeps an invisible tag, so both columns stay the same height */
 .bt-won.ghost{visibility:hidden}
@@ -385,7 +417,7 @@
 .bt-half{position:absolute;left:50%;top:-11px;bottom:-11px;width:1px;background:rgba(255,255,255,.55);box-shadow:var(--white-glow)}
 .bt-half::after{content:"50%";position:absolute;top:100%;left:50%;transform:translate(-50%,3px);font:500 10px/1 var(--disp);letter-spacing:.08em;color:var(--mute)}
 @media (prefers-reduced-motion:reduce){
-  .bout-sp .bout-eye{animation:none}
+  .bout-sp .bout-eye,.bout-side.lit .bout-sp{animation:none!important}
   .bout-crowd .cg{animation:none}
   .bt-tube,.bt-meet{transition:none}
   .bt-party{animation:none}
