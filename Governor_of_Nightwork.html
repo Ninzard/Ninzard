@@ -6,146 +6,416 @@
 <title>Governor of Nightwork</title>
 <link rel="stylesheet" href="wiki.css">
 <style>
-  /* Specialized styling for executive dossier showcase */
-  .governor-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
-    gap: 1.5rem;
-    margin: 2rem 0;
-  }
-  .governor-card {
-    background: #11141a;
-    border: 1px solid #232a36;
-    border-radius: 8px;
-    padding: 1.25rem;
-    position: relative;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: transform 0.2s ease, border-color 0.2s ease;
-  }
-  .governor-card:hover {
-    transform: translateY(-3px);
-    border-color: #3b82f6;
-  }
-  .gov-badge {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-  }
-  .badge-feudal { background: #374151; color: #f3f4f6; }
-  .badge-garrison { background: #7c2d12; color: #ffedd5; }
-  .badge-preservate { background: #1e3a8a; color: #dbeafe; }
-  .badge-orie { background: #831843; color: #fce7f3; }
-  .badge-nexit { background: #064e3b; color: #d1fae5; }
-  .gov-number {
-    font-size: 0.85rem;
-    font-weight: 800;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-  .gov-name {
-    font-size: 1.5rem;
-    margin: 0.25rem 0 0.5rem;
-    font-weight: 800;
-  }
-  .gov-name a {
-    color: #f8fafc;
-    text-decoration: none;
-  }
-  .gov-name a:hover {
-    color: #60a5fa;
-    text-decoration: underline;
-  }
-  .gov-alias {
-    font-size: 0.85rem;
-    color: #94a3b8;
-    margin-bottom: 0.75rem;
-    font-style: italic;
-  }
-  .gov-term {
-    font-size: 0.8rem;
-    color: #cbd5e1;
-    background: #1e2430;
-    padding: 0.35rem 0.6rem;
-    border-radius: 4px;
-    display: inline-block;
-    margin-bottom: 1rem;
-    font-family: monospace;
-  }
-  .gov-quote {
-    border-left: 3px solid #3b82f6;
-    padding-left: 0.75rem;
-    font-size: 0.875rem;
-    font-style: italic;
-    color: #94a3b8;
-    margin: 0.75rem 0 1rem;
-    line-height: 1.4;
-  }
-  .gov-meta {
-    font-size: 0.8rem;
-    border-top: 1px solid #1e293b;
-    padding-top: 0.75rem;
-    color: #94a3b8;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
-  }
-  .gov-meta strong {
-    color: #e2e8f0;
-    display: block;
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .badge-party {
-    display: inline-block;
-    padding: 0.15rem 0.4rem;
-    border-radius: 3px;
-    font-weight: 600;
-    font-size: 0.75rem;
-  }
-  .bp-home { background: #334155; color: #f8fafc; }
-  .bp-orie { background: #9d174d; color: #fff; }
-  .bp-ind { background: #475569; color: #fff; }
-  .bp-pv { background: #1d4ed8; color: #fff; }
-  .bp-pop { background: #b45309; color: #fff; }
+/* GOVERNOR OF NIGHTWORK: the page's own design (no shared file changed). Class names all start "gv".
+   Party colours come from wiki.css: data-party="or|pv|hm|in" sets --pc for anything inside it. */
+[data-party=or]{--pc:var(--orie)}
+[data-party=pv]{--pc:var(--pres)}
+[data-party=hm]{--pc:var(--home)}
+[data-party=in]{--pc:var(--indep)}
+
+/* ================================================================ the hall and the timeline */
+.gv-line{position:relative;margin:6px 0 26px;clear:both}
+.gv-hall{position:relative;padding:0 6px;border:1px solid var(--line);border-bottom:0;border-radius:6px 6px 0 0;overflow:hidden;
+  background:
+    radial-gradient(120% 60% at 50% 0%,rgba(140,90,210,.16),transparent 70%),
+    linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px) 0 0/8px 8px,
+    linear-gradient(0deg,rgba(255,255,255,.025) 1px,transparent 1px) 0 0/8px 8px,
+    linear-gradient(180deg,#05030a,#0c0716 70%,#120a1f)}
+/* the floor */
+.gv-hall::after{content:"";position:absolute;left:0;right:0;bottom:0;height:62px;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),transparent 2px),linear-gradient(180deg,#140b22,#07040c)}
+.gv-marquee{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:14px;padding:13px 0 6px;
+  font:600 12px/1 var(--disp);letter-spacing:.32em;text-transform:uppercase;color:var(--ink)}
+.gv-marquee b{font-weight:500;color:var(--accent);letter-spacing:.24em}
+.gv-marquee i{flex:1;max-width:150px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,143,180,.6))}
+.gv-marquee i:last-child{background:linear-gradient(90deg,rgba(255,143,180,.6),transparent)}
+.gv-slots{position:relative;z-index:1;display:grid;grid-template-columns:repeat(9,1fr);margin:0;padding:0;list-style:none}
+.gv-slot{margin:0;padding:0}
+.gv-slot::marker{content:none}
+.gv-slot-a{position:relative;display:flex;flex-direction:column;align-items:center;height:254px;color:inherit;text-decoration:none!important;outline:0}
+/* each governor's alcove, lit from below in their party's colour */
+.gv-alcove{position:absolute;left:50%;top:10px;width:76px;height:178px;margin-left:-38px;border-radius:38px 38px 3px 3px;
+  border:1px solid color-mix(in srgb,var(--pc) 38%,transparent);border-bottom:0;
+  background:radial-gradient(90% 55% at 50% 100%,color-mix(in srgb,var(--pc) 34%,transparent),transparent 75%),
+    linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.05));
+  box-shadow:inset 0 0 18px rgba(0,0,0,.6);transition:box-shadow .3s ease,border-color .3s ease}
+.gv-alcove::before{content:"";position:absolute;left:50%;top:9px;width:5px;height:5px;margin-left:-2.5px;transform:rotate(45deg);
+  background:color-mix(in srgb,var(--pc) 70%,#fff);box-shadow:0 0 6px var(--pc);opacity:.7}
+/* the sprites: 3x, feet on the plinth; pointing at one closes its eyes and lights it up (as on the election pages) */
+.gv-sp{position:absolute;left:50%;top:76px;width:96px;height:120px;margin-left:-48px;z-index:2;
+  filter:drop-shadow(0 0 0 var(--pc)) drop-shadow(0 0 0 var(--pc));transition:filter .3s ease}
+.gv-sp img,.gv-d-sp img{position:absolute;inset:0;display:block;width:100%;height:100%;margin:0;image-rendering:pixelated}
+.gv-sp .gv-eye,.gv-d-sp .gv-eye{opacity:0}
+.gv-sp .gv-eye:not([src]),.gv-sp .gv-eye.fail,.gv-d-sp .gv-eye:not([src]),.gv-d-sp .gv-eye.fail{visibility:hidden}
+.gv-slot.lit .gv-eye,.gv-d-stage.lit .gv-eye{opacity:1}
+.gv-slot.lit .gv-sp,.gv-d-stage.lit .gv-d-sp{filter:drop-shadow(0 0 3px var(--pc)) drop-shadow(0 0 10px var(--pc));animation:gvGlow 1.8s ease-in-out .3s infinite alternate}
+@keyframes gvGlow{to{filter:drop-shadow(0 0 5px var(--pc)) drop-shadow(0 0 20px var(--pc))}}
+.gv-slot.lit .gv-alcove{border-color:var(--pc);box-shadow:inset 0 0 18px rgba(0,0,0,.5),0 0 18px color-mix(in srgb,var(--pc) 45%,transparent)}
+/* the plinth, with the governor's number */
+.gv-plinth{position:absolute;left:50%;top:188px;width:70px;height:20px;margin-left:-35px;z-index:3;
+  background:linear-gradient(180deg,#2a1d3c 0 5px,#1a1027 5px);border:1px solid #3d2a55;border-radius:2px;
+  box-shadow:0 -1px 0 color-mix(in srgb,var(--pc) 60%,transparent),0 6px 12px rgba(0,0,0,.6)}
+.gv-plinth::before{content:"";position:absolute;left:4px;right:4px;top:-4px;height:4px;background:#33244a;border:1px solid #4a3566;border-bottom:0;border-radius:2px 2px 0 0}
+.gv-plinth i{position:absolute;left:0;right:0;top:6px;font:700 10px/1 var(--disp);font-style:normal;letter-spacing:.14em;text-align:center;
+  color:color-mix(in srgb,var(--pc) 55%,#fff);text-shadow:0 0 6px var(--pc)}
+.gv-plate{position:absolute;left:0;right:0;top:216px;z-index:3;display:flex;flex-direction:column;align-items:center;gap:4px;white-space:nowrap}
+.gv-plate b{font:700 13.5px/1 var(--disp);color:var(--ink);letter-spacing:.02em;transition:text-shadow .2s ease}
+.gv-plate small{font:500 10.5px/1 var(--disp);letter-spacing:.08em;color:var(--mute)}
+.gv-slot.lit .gv-plate b,.gv-slot.sel .gv-plate b{text-shadow:0 0 6px var(--pc),0 0 16px var(--pc)}
+.gv-slot.sel .gv-plate small{color:var(--accent)}
+.gv-slot-a:focus-visible .gv-alcove{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.5)}
+
+/* the timeline beneath */
+.gv-time{position:relative;padding:0 6px 8px;border:1px solid var(--line);border-top:0;border-radius:0 0 6px 6px;
+  background:linear-gradient(180deg,#07040c,#0d0717)}
+.gv-wires{display:block;width:100%;height:46px;overflow:visible}
+.gv-wires path{fill:none;stroke:color-mix(in srgb,var(--pc) 70%,#fff);stroke-width:1.2;opacity:.35;transition:opacity .2s ease,stroke-width .2s ease}
+.gv-wires path.lit{opacity:1;stroke-width:2.2;filter:drop-shadow(0 0 3px var(--pc))}
+.gv-track{position:relative;height:30px;margin:0 2px;border:1px solid var(--line);border-radius:6px;background:#06030b;box-shadow:inset 0 0 10px rgba(0,0,0,.9);cursor:crosshair}
+.gv-years i{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.07)}
+.gv-span{position:absolute;top:4px;bottom:4px;min-width:5px;border-radius:4px;text-decoration:none!important;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--pc) 45%,#fff) 0%,var(--pc) 45%,color-mix(in srgb,var(--pc) 65%,#000) 100%);
+  box-shadow:0 0 5px color-mix(in srgb,var(--pc) 80%,transparent),0 0 14px color-mix(in srgb,var(--pc) 35%,transparent);
+  display:flex;align-items:center;justify-content:center;transition:transform .2s ease,box-shadow .2s ease;outline:0}
+.gv-span+.gv-span{margin-left:0}
+.gv-span span{font:700 10px/1 var(--disp);letter-spacing:.12em;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.8)}
+.gv-span.lit{transform:scaleY(1.35);box-shadow:0 0 6px var(--pc),0 0 20px var(--pc),0 0 0 1px rgba(255,255,255,.7);z-index:2}
+.gv-defacto{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--pc) 70%,transparent) 0 3px,transparent 3px 6px);box-shadow:none;opacity:.8}
+.gv-cursor{position:absolute;top:-50px;bottom:-5px;left:0;width:0;opacity:0;pointer-events:none;transition:opacity .15s ease;z-index:4}
+.gv-cursor.on{opacity:1}
+.gv-cursor i{position:absolute;top:42px;bottom:0;left:-.5px;width:1px;background:#fff;box-shadow:0 0 6px #fff}
+.gv-bubble{position:absolute;top:0;left:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:5px 9px 6px;border:1px solid rgba(255,255,255,.35);border-radius:5px;background:rgba(10,6,18,.94);white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.6)}
+.gv-bubble b{font:700 12.5px/1 var(--disp);color:var(--ink);text-shadow:0 0 6px var(--pc),0 0 14px var(--pc)}
+.gv-bubble small{font:500 10.5px/1 var(--disp);letter-spacing:.06em;color:var(--mute)}
+.gv-axis{position:relative;height:20px;margin:0 2px}
+.gv-axis span{position:absolute;top:5px;transform:translateX(-50%);font:500 10.5px/1 var(--disp);letter-spacing:.06em;color:var(--mute)}
+.gv-axis span.first{transform:none}
+.gv-axis span::before{content:"";position:absolute;left:50%;top:-6px;width:1px;height:4px;background:rgba(255,255,255,.3)}
+.gv-axis span.first::before{content:none}
+.gv-pins{position:relative;height:var(--h,58px);margin:0 2px}
+.gv-pin{position:absolute;top:calc(var(--lane) * 18px);display:flex;align-items:center;gap:5px;transform:translateX(-4px);white-space:nowrap;
+  font:600 10.5px/1 var(--disp);letter-spacing:.05em;color:var(--mute);text-decoration:none!important}
+.gv-pin::before{content:"";position:absolute;left:3.5px;bottom:100%;width:1px;height:calc(var(--lane) * 18px + 4px);background:rgba(255,255,255,.18)}
+/* a pin near the right end reads leftward, so its label stays inside the box */
+.gv-pin.l{flex-direction:row-reverse;transform:translateX(calc(-100% + 4px))}
+.gv-pin.l::before{left:auto;right:3.5px}
+.gv-pin i{flex:none;width:8px;height:8px;transform:rotate(45deg);background:#fff;box-shadow:0 0 6px rgba(255,255,255,.7)}
+.gv-pin.mark i{background:transparent;border:1.5px solid var(--accent);box-shadow:0 0 6px rgba(255,143,180,.6)}
+.gv-pin.mark b{color:var(--accent)}
+.gv-pin b{font-weight:600}
+a.gv-pin b{color:var(--link)}
+a.gv-pin:hover b{color:#fff;text-decoration:underline}
+/* the card shown when pointing at a governor */
+.gv-card{position:absolute;z-index:6;left:0;top:0;width:300px;padding:12px 13px;border:1px solid color-mix(in srgb,var(--pc) 60%,transparent);border-radius:8px;
+  background:linear-gradient(180deg,#1a0f29,#0e0818);box-shadow:0 0 0 1px rgba(0,0,0,.6),0 12px 30px rgba(0,0,0,.7),0 0 22px color-mix(in srgb,var(--pc) 25%,transparent);
+  opacity:0;transform:translateY(6px);pointer-events:none;transition:opacity .15s ease,transform .15s ease}
+.gv-card.on{opacity:1;transform:none}
+.gv-card-h{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.gv-card canvas{flex:none;width:44px;height:44px;border-radius:8px;image-rendering:pixelated;
+  background:radial-gradient(circle at 50% 70%,color-mix(in srgb,var(--pc) 35%,#0b0614),#07040c 75%);box-shadow:0 0 0 1px var(--pc),0 0 10px color-mix(in srgb,var(--pc) 50%,transparent)}
+.gv-card-k{font:600 10px/1 var(--disp);letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.gv-card-n{margin-top:5px;font:700 20px/1 var(--disp);color:var(--ink);text-shadow:0 0 6px var(--pc),0 0 16px color-mix(in srgb,var(--pc) 60%,transparent)}
+.gv-card-r{display:grid;grid-template-columns:62px 1fr;gap:5px 8px;font-size:13px;line-height:1.35}
+.gv-card-r span:nth-child(odd){font:600 10px/1.6 var(--disp);letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.gv-card-r .pp{color:var(--pc);font-weight:700;text-shadow:0 0 6px color-mix(in srgb,var(--pc) 60%,transparent)}
+.gv-card-f{margin-top:9px;padding-top:8px;border-top:1px solid var(--line);font:500 11px/1 var(--disp);letter-spacing:.06em;color:var(--accent)}
+.gv-line figcaption{margin-top:10px;font-size:13px;line-height:1.5;color:var(--mute);text-align:center}
+
+/* ================================================================ the dossiers */
+.gv-tabs{display:grid;grid-template-columns:repeat(9,1fr);gap:6px;margin:16px 0 0;padding:0;list-style:none}
+.gv-tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:9px 0 8px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;
+  background:linear-gradient(180deg,#160c24,#0e0818);color:var(--mute);cursor:pointer;font:600 11.5px/1 var(--disp);transition:background .2s ease,color .2s ease,transform .2s ease}
+.gv-tab:hover{color:var(--ink);transform:translateY(-2px)}
+.gv-tab canvas{width:40px;height:40px;border-radius:8px;image-rendering:pixelated;
+  background:radial-gradient(circle at 50% 70%,color-mix(in srgb,var(--pc) 30%,#0b0614),#07040c 75%);box-shadow:0 0 0 1px color-mix(in srgb,var(--pc) 60%,transparent)}
+.gv-tab small{position:absolute;top:5px;left:7px;font:700 9px/1 var(--disp);letter-spacing:.1em;color:color-mix(in srgb,var(--pc) 60%,#fff);opacity:.8}
+.gv-tab[aria-selected=true]{color:var(--ink);background:linear-gradient(180deg,color-mix(in srgb,var(--pc) 22%,#1a0f29),#140b22);border-color:color-mix(in srgb,var(--pc) 70%,transparent);
+  text-shadow:0 0 8px var(--pc)}
+.gv-tab[aria-selected=true] canvas{box-shadow:0 0 0 1px var(--pc),0 0 12px var(--pc)}
+.gv-tab:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+.gv-dossiers{margin:0 0 8px}
+.gv-dossiers.js .gv-doss:not(.on){display:none}
+.gv-doss{position:relative;display:grid;grid-template-columns:240px 1fr;gap:26px;margin:0 0 18px;padding:22px 24px 20px;
+  border:1px solid color-mix(in srgb,var(--pc) 45%,var(--line));border-radius:8px;
+  background:radial-gradient(70% 90% at 0% 0%,color-mix(in srgb,var(--pc) 13%,transparent),transparent 70%),linear-gradient(180deg,#140b22,#0c0716)}
+.gv-dossiers.js .gv-doss{border-radius:0 0 8px 8px;animation:gvIn .35s ease}
+@keyframes gvIn{from{opacity:0;transform:translateY(6px)}}
+.gv-d-pic{position:relative;align-self:start}
+.gv-d-frame{position:relative;display:block;aspect-ratio:4/5;overflow:hidden;border-radius:4px;background:#0a0510;
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--pc) 55%,transparent),0 0 24px color-mix(in srgb,var(--pc) 25%,transparent)}
+.gv-d-frame img{display:block;width:100%;height:100%;object-fit:cover}
+.gv-d-frame img.fail{display:none}
+.gv-d-letter{position:absolute;inset:0;display:grid;place-items:center;font:700 90px/1 var(--disp);color:color-mix(in srgb,var(--pc) 60%,#fff);z-index:0}
+.gv-d-frame img{position:relative;z-index:1}
+.gv-d-frame::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:var(--pic-fx)}
+.gv-d-frame::before{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;z-index:3;background:var(--pc);box-shadow:0 0 12px var(--pc)}
+.gv-d-scan{position:absolute;left:0;right:0;top:0;height:30%;z-index:2;pointer-events:none;
+  background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--pc) 18%,transparent),transparent);animation:gvScan 5.5s linear infinite}
+@keyframes gvScan{from{transform:translateY(-100%)}to{transform:translateY(340%)}}
+/* the governor's sprite, standing at the foot of the portrait */
+.gv-d-stage{position:absolute;right:-20px;bottom:-12px;width:64px;height:92px;z-index:4;cursor:default}
+.gv-d-sp{position:absolute;left:0;top:0;width:64px;height:80px;filter:drop-shadow(0 0 0 var(--pc)) drop-shadow(0 0 0 var(--pc));transition:filter .3s ease}
+.gv-d-plinth{position:absolute;left:8px;right:8px;bottom:4px;height:9px;background:linear-gradient(180deg,#33244a 0 3px,#1a1027 3px);border:1px solid #4a3566;border-radius:2px;
+  box-shadow:0 -1px 0 var(--pc),0 4px 10px rgba(0,0,0,.7)}
+.gv-d-body{min-width:0}
+.gv-d-eyebrow{display:flex;align-items:center;gap:10px;margin:0 0 10px}
+.gv-badge{padding:4px 8px 3px;border-radius:3px;border:1px solid var(--pc);font:700 10px/1 var(--disp);letter-spacing:.18em;text-transform:uppercase;color:#fff;
+  background:color-mix(in srgb,var(--pc) 30%,transparent);box-shadow:0 0 10px color-mix(in srgb,var(--pc) 40%,transparent)}
+.gv-d-ord{font:600 12px/1 var(--disp);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.gv-d-name{font:700 40px/1.05 var(--disp);letter-spacing:.01em}
+.gv-d-name a{color:var(--ink)!important;text-decoration:none!important;text-shadow:0 0 8px var(--pc),0 0 26px color-mix(in srgb,var(--pc) 55%,transparent)}
+.gv-d-name a:hover{text-decoration:underline!important;text-underline-offset:5px}
+.gv-d-alias{margin:6px 0 12px;font-style:italic;font-size:14.5px;color:var(--mute)}
+.gv-d-term{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 12px;margin:0 0 8px}
+.gv-d-term span{font:600 15px/1.2 var(--disp);color:var(--ink)}
+.gv-d-term small{padding:3px 7px 2px;border-radius:10px;background:rgba(255,255,255,.06);font:500 11px/1 var(--disp);letter-spacing:.06em;color:var(--mute)}
+.gv-mini{position:relative;height:8px;margin:2px 32px 16px;border-radius:4px;background:rgba(255,255,255,.05)}
+.gv-mini i{position:absolute;top:0;bottom:0;min-width:3px;border-radius:2px;background:var(--pc);opacity:.22}
+.gv-mini i.on{opacity:1;top:-2px;bottom:-2px;box-shadow:0 0 8px var(--pc),0 0 0 1px rgba(255,255,255,.6)}
+.gv-mini span{position:absolute;top:-1px;font:500 9.5px/1 var(--disp);color:var(--mute)}
+.gv-mini .a{right:100%;margin-right:6px}
+.gv-mini .b{left:100%;margin-left:6px}
+.gv-d-quote{position:relative;margin:0 0 16px;padding:10px 14px 10px 16px;border-left:3px solid var(--pc);border-radius:0 6px 6px 0;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--pc) 12%,transparent),transparent)}
+.gv-d-quote p{margin:0;font:italic 16.5px/1.5 var(--text);color:var(--ink)}
+.gv-d-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;padding-top:12px;border-top:1px solid var(--line)}
+.gv-d-meta>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.gv-k{font:600 10px/1 var(--disp);letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.gv-v{font-size:14.5px;line-height:1.35;color:var(--ink)}
+.gv-d-foot{display:flex;align-items:center;justify-content:space-between;margin:16px 0 0}
+.gv-d-more{padding:7px 12px 6px;border:1px solid var(--accent);border-radius:4px;font:600 12px/1 var(--disp);letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent)!important;text-decoration:none!important;box-shadow:0 0 12px rgba(255,143,180,.2)}
+.gv-d-more::after{content:" →"}
+.gv-d-more:hover{background:rgba(255,143,180,.12)}
+.gv-d-nav{display:flex;gap:14px}
+.gv-d-nav a{font:600 12px/1 var(--disp);letter-spacing:.06em;color:var(--link);text-decoration:none!important}
+.gv-d-nav a:hover{color:#fff}
+
+/* ================================================================ by the numbers */
+.gv-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 18px}
+.gv-tile{padding:14px 14px 12px;border:1px solid var(--line);border-radius:6px;background:linear-gradient(180deg,#160c24,#0e0818)}
+.gv-tile b{display:block;font:700 26px/1 var(--disp);color:var(--ink);text-shadow:0 0 10px rgba(195,162,255,.35)}
+.gv-tile>span{display:block;margin-top:7px;font-size:12.5px;line-height:1.35;color:var(--mute)}
+.gv-numbers{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;align-items:start}
+.gv-chart{padding:14px 16px;border:1px solid var(--line);border-radius:6px;background:linear-gradient(180deg,#140b22,#0c0716)}
+.gv-chart-t{margin:0 0 12px;font:600 12px/1 var(--disp);letter-spacing:.16em;text-transform:uppercase;color:var(--ink)}
+.gv-chart-t small{margin-left:6px;font-weight:500;letter-spacing:.06em;text-transform:none;color:var(--mute)}
+.gv-row{display:grid;grid-template-columns:104px 1fr 38px;align-items:center;gap:10px;padding:3px 4px;border-radius:4px;cursor:default}
+.gv-row:hover{background:rgba(255,255,255,.05)}
+.gv-row-n{font:600 13px/1 var(--disp);color:var(--ink);white-space:nowrap}
+.gv-row-n small{margin-left:3px;font-size:9.5px;letter-spacing:.1em;color:var(--mute)}
+.gv-row-bar{position:relative;height:12px}
+.gv-row-bar i{position:absolute;left:0;top:0;bottom:0;min-width:3px;border-radius:0 4px 4px 0;background:var(--pc);box-shadow:0 0 8px color-mix(in srgb,var(--pc) 45%,transparent)}
+.gv-row-v{font:500 12px/1 var(--disp);color:var(--mute);text-align:right}
+.gv-stack{display:flex;gap:2px;height:22px;margin-bottom:14px}
+.gv-stack i{background:var(--pc);box-shadow:0 0 10px color-mix(in srgb,var(--pc) 45%,transparent)}
+.gv-stack i:first-child{border-radius:4px 0 0 4px}
+.gv-stack i:last-child{border-radius:0 4px 4px 0}
+.gv-legend{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.gv-legend li{display:flex;align-items:baseline;gap:8px;font-size:14px}
+.gv-legend li::marker{content:none}
+.gv-legend i{flex:none;width:10px;height:10px;align-self:center;border-radius:2px;background:var(--pc)}
+.gv-legend b{margin-left:auto;font:700 14px/1 var(--disp);color:var(--ink)}
+.gv-legend small{min-width:70px;text-align:right;font:500 11.5px/1 var(--disp);color:var(--mute)}
+
+/* ================================================================ the ledger and the infobox emblem */
+.gv-ledger td:first-child{text-align:center;font-family:var(--disp)}
+.gv-ledger td:nth-child(3){white-space:nowrap}
+.gv-ledger tr{transition:background .2s ease}
+.gv-ledger tr.lit td{background:rgba(255,255,255,.05)}
+.frame.gv-seal{aspect-ratio:4/5;background:radial-gradient(circle at 50% 45%,#1d1030,#07040c 75%)}
+.frame.gv-seal img,.frame.gv-seal .fallback{display:none}
+.frame.gv-seal svg{position:absolute;inset:0;width:100%;height:100%}
+
+@media (prefers-reduced-motion:reduce){
+  .gv-slot.lit .gv-sp,.gv-d-stage.lit .gv-d-sp{animation:none}
+  .gv-d-scan,.gv-dossiers.js .gv-doss{animation:none}
+}
 </style>
 </head>
-<body data-edited="16 October 2026">
+<!--
+  GOVERNOR OF NIGHTWORK. Redesigned on 5 November 2026 (the user: "scrap it all (not the txt, but aesthetics)").
+  Everything is in this page: its styles above, its script after wiki.js, and the emblem in <template id="gv-seal">.
+  - The hall at the top: one alcove per governor with their sprite (codes <name>_sprite and <name>_blink_sprite),
+    joined by a wire to the span of their term on the timeline beneath. Positions on the timeline are percentages
+    of 1 May 2015 – 1 December 2025, computed when the page was built (Claude's gov_page.py, session only).
+  - The dossiers: one <article class="gv-doss"> per governor. Without the script all nine show one after another;
+    the script turns them into a switcher with a tab per governor (#gov-<name> opens one directly).
+  - Party colours come from wiki.css through data-party="or|pv|hm|in".
+-->
+<body data-edited="5 November 2026">
 
 <h1>Governor of Nightwork</h1>
 
 <div class="hatnote">This article outlines the high executive office of the Nightian Faction from its establishment in 2015 to its formal dissolution under Nexit in 2025.</div>
+
+<figure class="gv-line no-name" id="throne-line" data-from="2015-05-01" data-to="2025-12-01" aria-label="The nine Governors of Nightwork and their terms, 2015 to 2025">
+<div class="gv-hall">
+<div class="gv-marquee" aria-hidden="true"><i></i><span>The Governors of Nightwork</span><b>2015 · 2025</b><i></i></div>
+<ol class="gv-slots">
+<li class="gv-slot" data-gov="elusion" data-party="hm" data-from="2015-07-11" data-to="2016-12-31" data-name="Elusion" data-n="1" data-badge="Founder" data-term="11 July 2015 – 31 December 2016" data-len="1 year, 5 months · 540 days" data-pname="Home">
+<a class="gv-slot-a" href="#gov-elusion" aria-label="1st Governor: Elusion, 11 July 2015 – 31 December 2016">
+<span class="gv-alcove" aria-hidden="true"></span><span class="gv-sp"><img data-image="elusion_sprite" alt="Elusion"><img class="gv-eye" data-image="elusion_blink_sprite" alt=""></span>
+<span class="gv-plinth" aria-hidden="true"><i>I</i></span>
+<span class="gv-plate"><b>Elusion</b><small>2015–16</small></span>
+</a></li>
+<li class="gv-slot" data-gov="degreez" data-party="or" data-from="2017-01-01" data-to="2018-10-23" data-name="DegreeZ" data-n="2" data-badge="Golden Era" data-term="1 January 2017 – 23 October 2018" data-len="1 year, 9 months · 661 days" data-pname="Original">
+<a class="gv-slot-a" href="#gov-degreez" aria-label="2nd Governor: DegreeZ, 1 January 2017 – 23 October 2018">
+<span class="gv-alcove" aria-hidden="true"></span><span class="gv-sp"><img data-image="degreez_sprite" alt="DegreeZ"><img class="gv-eye" data-image="degreez_blink_sprite" alt=""></span>
+<span class="gv-plinth" aria-hidden="true"><i>II</i></span>
+<span class="gv-plate"><b>DegreeZ</b><small>2017–18</small></span>
+</a></li>
+<li class="gv-slot" data-gov="piggiemlg" data-party="or" data-from="2018-10-27" data-to="2018-11-27" data-name="PiggieMLG" data-n="3" data-badge="Crisis" data-term="27 October 2018 – 27 November 2018" data-len="1 month · 32 days" data-pname="Original">
+<a class="gv-slot-a" href="#gov-piggiemlg" aria-label="3rd Governor: PiggieMLG, 27 October 2018 – 27 November 2018">
+<span class="gv-alcove" aria-hidden="true"></span><span class="gv-sp"><img data-image="piggiemlg_sprite" alt="PiggieMLG"><img class="gv-eye" data-image="piggiemlg_blink_sprite" alt=""></span>
+<span class="gv-plinth" aria-hidden="true"><i>III</i></span>
+<span class="gv-plate"><b>PiggieMLG</b><small>2018</small></span>
+</a></li>
+<li class="gv-slot" data-gov="spikester" data-party="in" data-from="2018-11-27" data-to="2020-02-29" data-name="Spikester" data-n="4" data-badge="Underground" data-term="27 November 2018 – 29 February 2020" data-len="1 year, 3 months · 460 days" data-pname="Independent">
+<a class="gv-slot-a" href="#gov-spikester" aria-label="4th Governor: Spikester, 27 November 2018 – 29 February 2020">
+<span class="gv-alcove" aria-hidden="true"></span><span class="gv-sp"><img data-image="spikester_sprite" alt="Spikester"><img class="gv-eye" data-image="spikester_blink_sprite" alt=""></span>
+<span class="gv-plinth" aria-hidden="true"><i>IV</i></span>
+<span class="gv-plate"><b>Spikester</b><small>2018–20</small></span>
+</a></li>
+<li class="gv-slot" data-gov="syn" data-party="pv" data-from="2020-02-29" data-to="2022-01-04" data-name="Syn" data-n="5" data-badge="Fortress" data-term="29 February 2020 – 4 January 2022" data-len="1 year, 10 months · 676 days" data-pname="Preservation">
+<a class="gv-slot-a" href="#gov-syn" aria-label="5th Governor: Syn, 29 February 2020 – 4 January 2022">
+<span class="gv-alcove" aria-hidden="true"></span><span class="gv-sp"><img data-image="syn_sprite" alt="Syn"><img class="gv-eye" data-image="syn_blink_sprite" alt=""></span>
+<span class="gv-plinth" aria-hidden="true"><i>V</i></span>
+<span class="gv-plate"><b>Syn</b><small>2020–22</small></span>
+</a></li>
+<li class="gv-slot" data-gov="cyntaku" data-party="pv" data-from="2022-01-04" data-to="2022-07-06" data-name="Cyntaku" data-n="6" data-badge="Siege" data-term="4 January 2022 – 6 July 2022" data-len="6 months · 184 days" data-pname="Preservation">
+<a class="gv-slot-a" href="#gov-cyntaku" aria-label="6th Governor: Cyntaku, 4 January 2022 – 6 July 2022">
+<span class="gv-alcove" aria-hidden="true"></span><span class="gv-sp"><img data-image="cyntaku_sprite" alt="Cyntaku"><img class="gv-eye" data-image="cyntaku_blink_sprite" alt=""></span>
+<span class="gv-plinth" aria-hidden="true"><i>VI</i></span>
+<span class="gv-plate"><b>Cyntaku</b><small>2022</small></span>
+</a></li>
+<li class="gv-slot" data-gov="spinzle" data-party="or" data-from="2022-07-06" data-to="2023-01-03" data-name="Spinzle" data-n="7" data-badge="Technocrat" data-term="6 July 2022 – 3 January 2023" data-len="5 months · 182 days" data-pname="OPC Coalition">
+<a class="gv-slot-a" href="#gov-spinzle" aria-label="7th Governor: Spinzle, 6 July 2022 – 3 January 2023">
+<span class="gv-alcove" aria-hidden="true"></span><span class="gv-sp"><img data-image="spinzle_sprite" alt="Spinzle"><img class="gv-eye" data-image="spinzle_blink_sprite" alt=""></span>
+<span class="gv-plinth" aria-hidden="true"><i>VII</i></span>
+<span class="gv-plate"><b>Spinzle</b><small>2022–23</small></span>
+</a></li>
+<li class="gv-slot" data-gov="adelynn" data-party="pv" data-from="2023-01-03" data-to="2024-12-31" data-name="Adelynn" data-n="8" data-badge="Sanctuary" data-term="3 January 2023 – 31 December 2024" data-len="1 year, 11 months · 729 days" data-pname="Preservation (Logos)">
+<a class="gv-slot-a" href="#gov-adelynn" aria-label="8th Governor: Adelynn, 3 January 2023 – 31 December 2024">
+<span class="gv-alcove" aria-hidden="true"></span><span class="gv-sp"><img data-image="adelynn_sprite" alt="Adelynn"><img class="gv-eye" data-image="adelynn_blink_sprite" alt=""></span>
+<span class="gv-plinth" aria-hidden="true"><i>VIII</i></span>
+<span class="gv-plate"><b>Adelynn</b><small>2023–24</small></span>
+</a></li>
+<li class="gv-slot" data-gov="aceiron" data-party="or" data-from="2025-01-01" data-to="2025-08-20" data-name="Aceiron" data-n="9" data-badge="Sovereign" data-term="1 January 2025 – 20 August 2025" data-len="7 months · 232 days" data-pname="Original">
+<a class="gv-slot-a" href="#gov-aceiron" aria-label="9th Governor: Aceiron, 1 January 2025 – 20 August 2025">
+<span class="gv-alcove" aria-hidden="true"></span><span class="gv-sp"><img data-image="aceiron_sprite" alt="Aceiron"><img class="gv-eye" data-image="aceiron_blink_sprite" alt=""></span>
+<span class="gv-plinth" aria-hidden="true"><i>IX</i></span>
+<span class="gv-plate"><b>Aceiron</b><small>2025</small></span>
+</a></li>
+</ol></div>
+<div class="gv-time">
+<svg class="gv-wires" viewBox="0 0 1000 60" preserveAspectRatio="none" aria-hidden="true">
+<path data-gov="elusion" data-party="hm" d="M55.6 0 C55.6 34 88.2 26 88.2 60" vector-effect="non-scaling-stroke"/>
+<path data-gov="degreez" data-party="or" d="M166.7 0 C166.7 34 243.5 26 243.5 60" vector-effect="non-scaling-stroke"/>
+<path data-gov="piggiemlg" data-party="or" d="M277.8 0 C277.8 34 333.9 26 333.9 60" vector-effect="non-scaling-stroke"/>
+<path data-gov="spikester" data-party="in" d="M388.9 0 C388.9 34 397.2 26 397.2 60" vector-effect="non-scaling-stroke"/>
+<path data-gov="syn" data-party="pv" d="M500.0 0 C500.0 34 543.8 26 543.8 60" vector-effect="non-scaling-stroke"/>
+<path data-gov="cyntaku" data-party="pv" d="M611.1 0 C611.1 34 654.8 26 654.8 60" vector-effect="non-scaling-stroke"/>
+<path data-gov="spinzle" data-party="or" d="M722.2 0 C722.2 34 701.8 26 701.8 60" vector-effect="non-scaling-stroke"/>
+<path data-gov="adelynn" data-party="pv" d="M833.3 0 C833.3 34 819.4 26 819.4 60" vector-effect="non-scaling-stroke"/>
+<path data-gov="aceiron" data-party="or" d="M944.4 0 C944.4 34 943.6 26 943.6 60" vector-effect="non-scaling-stroke"/>
+</svg>
+<div class="gv-track"><div class="gv-years" aria-hidden="true">
+<i style="left:6.336%"></i>
+<i style="left:15.800%"></i>
+<i style="left:25.239%"></i>
+<i style="left:34.678%"></i>
+<i style="left:44.117%"></i>
+<i style="left:53.582%"></i>
+<i style="left:63.020%"></i>
+<i style="left:72.459%"></i>
+<i style="left:81.898%"></i>
+<i style="left:91.363%"></i>
+</div>
+<a class="gv-span" href="#gov-elusion" data-gov="elusion" data-party="hm" style="left:1.836%;width:13.964%" aria-label="Elusion, 11 July 2015 – 31 December 2016"><span>I</span></a>
+<a class="gv-span" href="#gov-degreez" data-gov="degreez" data-party="or" style="left:15.800%;width:17.093%" aria-label="DegreeZ, 1 January 2017 – 23 October 2018"><span>II</span></a>
+<a class="gv-span" href="#gov-piggiemlg" data-gov="piggiemlg" data-party="or" style="left:32.971%;width:0.828%" aria-label="PiggieMLG, 27 October 2018 – 27 November 2018"></a>
+<a class="gv-span" href="#gov-spikester" data-gov="spikester" data-party="in" style="left:33.773%;width:11.896%" aria-label="Spikester, 27 November 2018 – 29 February 2020"><span>IV</span></a>
+<a class="gv-span" href="#gov-syn" data-gov="syn" data-party="pv" style="left:45.643%;width:17.481%" aria-label="Syn, 29 February 2020 – 4 January 2022"><span>V</span></a>
+<a class="gv-span" href="#gov-cyntaku" data-gov="cyntaku" data-party="pv" style="left:63.098%;width:4.758%" aria-label="Cyntaku, 4 January 2022 – 6 July 2022"><span>VI</span></a>
+<a class="gv-span" href="#gov-spinzle" data-gov="spinzle" data-party="or" style="left:67.830%;width:4.706%" aria-label="Spinzle, 6 July 2022 – 3 January 2023"><span>VII</span></a>
+<a class="gv-span" href="#gov-adelynn" data-gov="adelynn" data-party="pv" style="left:72.511%;width:18.852%" aria-label="Adelynn, 3 January 2023 – 31 December 2024"><span>VIII</span></a>
+<a class="gv-span" href="#gov-aceiron" data-gov="aceiron" data-party="or" style="left:91.363%;width:5.999%" aria-label="Aceiron, 1 January 2025 – 20 August 2025"><span>IX</span></a>
+<span class="gv-span gv-defacto" data-gov="aceiron" data-party="or" style="left:97.336%;width:0.879%" title="Aceiron, de facto president until the office was abolished on 22 September 2025"></span>
+<div class="gv-cursor" aria-hidden="true"><i></i><span class="gv-bubble"><b></b><small></small></span></div>
+</div>
+<div class="gv-axis" aria-hidden="true">
+<span style="left:0.000%" class="first">2015</span>
+<span style="left:6.336%">2016</span>
+<span style="left:15.800%">2017</span>
+<span style="left:25.239%">2018</span>
+<span style="left:34.678%">2019</span>
+<span style="left:44.117%">2020</span>
+<span style="left:53.582%">2021</span>
+<span style="left:63.020%">2022</span>
+<span style="left:72.459%">2023</span>
+<span style="left:81.898%">2024</span>
+<span style="left:91.363%">2025</span>
+</div>
+<div class="gv-pins" style="--h:78px">
+<span class="gv-pin mark" style="left:1.836%;--lane:0" title="11 July 2015"><i></i><b>Office established</b></span>
+<a href="January_2023_Nightian_gubernatorial_election.html" class="gv-pin vote l" style="left:72.511%;--lane:0" title="3 January 2023"><i></i><b>Jan '23</b></a>
+<a href="July_2023_Nightian_gubernatorial_election.html" class="gv-pin vote" style="left:77.217%;--lane:3" title="4 July 2023"><i></i><b>Jul '23</b></a>
+<a href="December_2023_Nightian_gubernatorial_election.html" class="gv-pin vote l" style="left:81.846%;--lane:1" title="30 December 2023"><i></i><b>Dec '23</b></a>
+<a href="2024_Nightian_gubernatorial_plebiscite.html" class="gv-pin vote l" style="left:86.579%;--lane:0" title="30 June 2024"><i></i><b>Plebiscite</b></a>
+<a href="2024_Nightian_gubernatorial_election.html" class="gv-pin vote l" style="left:91.337%;--lane:2" title="31 December 2024"><i></i><b>Dec '24 · Nexit</b></a>
+<a href="2025_Nightian_gubernatorial_election.html" class="gv-pin vote l" style="left:96.018%;--lane:1" title="30 June 2025"><i></i><b>Jun '25</b></a>
+<span class="gv-pin mark l" style="left:98.190%;--lane:0" title="22 September 2025"><i></i><b>Abolished</b></span>
+</div>
+</div>
+<div class="gv-card" aria-hidden="true"></div>
+<figcaption>The nine governors in order, each joined to the span of their term on the timeline. Point at a governor or along the timeline to see who held the office on a given day; click to open their dossier. The diamonds mark the gubernatorial elections that have pages.</figcaption>
+</figure>
 
 <blockquote class="hero" data-label="Historical Inscription">
   <p>The streets of Sacramento are not a simulation, and the frontier of Nightwork was never a sandbox for children. From the first port-scan of the Nightian War to the final severing of Nexit, the Governor held the line between the city outside and the madness within.</p>
   <footer>— <b>Archives of the Ninzard Project</b>, Section XVIII</footer>
 </blockquote>
 
-<aside class="infobox" data-caption="The High Executive of the Nightian Faction">
+<aside class="infobox" data-caption="The five districts of Nightwork, with a star for each of its nine governors">
   <h3>Governor of Nightwork</h3>
   <p class="term" data-label="Status">Abolished (22 September 2025)</p>
   <dl>
     <dt>First holder</dt><dd><a href="Elusion.html">Elusion</a> (11 July 2015)</dd>
-    <dt>Final holder</dt><dd><a href="Aceiron.html">Aceiron</a> (22 September 2025)</dd>
-    <dt>Seat of power</dt><dd>Nightwork Executive Command / Sacramento Diaspora</dd>
-    <dt>Governed territory</dt><dd>Main, Parry, Scope, Volley, Waffle</dd>
-    <dt>Succession</dt><dd>Presidency of the Ninzard Project</dd>
+    <dt>Final holder</dt><dd><a href="Aceiron.html">Aceiron</a> (until 20 August 2025)</dd>
+    <dt>Holders</dt><dd class="plain">9</dd>
+    <dt>Seat of power</dt><dd class="plain">Nightwork Executive Command / Sacramento Diaspora</dd>
+    <dt>Territory</dt><dd class="plain">Main, Parry, Scope, Volley, Waffle</dd>
+    <dt>Succession</dt><dd class="plain">Presidency of the Ninzard Project</dd>
   </dl>
 </aside>
 
-<p>The <b>Governor of Nightwork</b> was the supreme executive office of the Nightian Faction within the <a href="Ninzard_Project.html">Ninzard Project</a>. Established unofficially on 11 July 2015 following the reunification of Nightwork and Ninzardia, the governorship served as the regional counterweight to the Ninzard Presidency, commanding the five historic districts of Main, Parry, Scope, Volley, and Waffle.<sup class="ref">1,2</sup></p>
+<p>The <b>Governor of Nightwork</b> was the supreme executive office of the Nightian Faction within the Ninzard Project. Established unofficially on 11 July 2015 following the reunification of Nightwork and Ninzardia, the governorship served as the regional counterweight to the Ninzard Presidency, commanding the five historic districts of Main, Parry, Scope, Volley, and Waffle.<sup class="ref">1,2</sup></p>
 
 <p>Across its ten-year existence, nine governors held the office across distinct operational eras: the foundational truce of <a href="Elusion.html">Elusion</a>; the Golden Era militarization of <a href="DegreeZ.html">DegreeZ</a>; the authoritarian one-month crackdown of <a href="PiggieMLG.html">PiggieMLG</a>; the criminal expansionism of <a href="Spikester.html">Spikester</a>; the ironclad isolation of <a href="Syn.html">Syn</a>; the emergency defense of <a href="Cyntaku.html">Cyntaku</a>; the clinical constitutionalism of <a href="Spinzle.html">Spinzle</a>; the bureaucratic sanctuary of <a href="Adelynn.html">Adelynn</a>; and the populist secessionism of <a href="Aceiron.html">Aceiron</a>.<sup class="ref">2,3,4</sup> The office was abolished following the execution of Nexit in 2025, when Nightwork subsumed the entirety of the community infrastructure.<sup class="ref">5</sup></p>
+
+<template id="gv-seal"><svg viewBox="0 0 400 500" role="img" aria-label="The five districts of Nightwork, ringed by a star for each of its nine governors">
+<defs>
+  <linearGradient id="gvs-ring" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7d5bc0"/><stop offset="1" stop-color="#d0506e"/></linearGradient>
+  <radialGradient id="gvs-sea" cx=".5" cy=".45" r=".55"><stop offset="0" stop-color="#2a1745"/><stop offset="1" stop-color="#0d0717"/></radialGradient>
+  <filter id="gvs-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <filter id="gvs-coast" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="3"/></filter>
+</defs>
+<circle cx="200" cy="232" r="156" fill="url(#gvs-sea)"/>
+<clipPath id="gvs-disc"><circle cx="200" cy="232" r="156"/></clipPath><g opacity=".18" stroke="#c3a2ff" stroke-width=".6" clip-path="url(#gvs-disc)"><line x1="32" y1="64" x2="32" y2="400"/><line x1="56" y1="64" x2="56" y2="400"/><line x1="80" y1="64" x2="80" y2="400"/><line x1="104" y1="64" x2="104" y2="400"/><line x1="128" y1="64" x2="128" y2="400"/><line x1="152" y1="64" x2="152" y2="400"/><line x1="176" y1="64" x2="176" y2="400"/><line x1="200" y1="64" x2="200" y2="400"/><line x1="224" y1="64" x2="224" y2="400"/><line x1="248" y1="64" x2="248" y2="400"/><line x1="272" y1="64" x2="272" y2="400"/><line x1="296" y1="64" x2="296" y2="400"/><line x1="320" y1="64" x2="320" y2="400"/><line x1="344" y1="64" x2="344" y2="400"/><line x1="368" y1="64" x2="368" y2="400"/><line x1="32" y1="64" x2="368" y2="64"/><line x1="32" y1="88" x2="368" y2="88"/><line x1="32" y1="112" x2="368" y2="112"/><line x1="32" y1="136" x2="368" y2="136"/><line x1="32" y1="160" x2="368" y2="160"/><line x1="32" y1="184" x2="368" y2="184"/><line x1="32" y1="208" x2="368" y2="208"/><line x1="32" y1="232" x2="368" y2="232"/><line x1="32" y1="256" x2="368" y2="256"/><line x1="32" y1="280" x2="368" y2="280"/><line x1="32" y1="304" x2="368" y2="304"/><line x1="32" y1="328" x2="368" y2="328"/><line x1="32" y1="352" x2="368" y2="352"/><line x1="32" y1="376" x2="368" y2="376"/><line x1="32" y1="400" x2="368" y2="400"/></g>
+<circle cx="200" cy="232" r="156" fill="none" stroke="url(#gvs-ring)" stroke-width="3"/>
+<circle cx="200" cy="232" r="148" fill="none" stroke="url(#gvs-ring)" stroke-width="1" opacity=".55"/>
+<g transform="translate(37.8 131.3) scale(0.4)">
+  <path d="M92,141.2 92.6,148.4 93.5,150.7 95.3,152.6 102.9,157 105.1,159.8 105.9,163.6 109.5,172.9 109.1,175.1 98.1,190.9 93.3,200.7 92.1,205.8 91.7,211.4 93,221.9 101,257.3 104.8,266.8 111.2,280.4 113.3,289.4 112.9,296.1 117.4,303.2 121,311.9 122.4,318.6 124.8,323.4 124.8,331.5 128.2,341.8 138.1,348 147.7,355.1 174.5,381.8 181.8,390 193.7,408.2 200.9,417.2 209.1,423.4 217.1,427.3 240.6,434.5 243.8,436.9 245.5,445.3 247.2,447.1 255.5,452.3 258.1,456.7 262.4,460.1 272.8,471 278.5,473.6 286.4,479.9 293,482 301.9,481.9 312.9,479.2 319.6,478.8 338.8,473.7 342.7,471.2 345.1,468.8 346,465.4 346,460.2 348.4,457 350.9,455.9 352.6,455.8 378.1,459.3 399.3,463.6 414,468.6 438.2,479.1 455.6,485.3 464.4,487.2 473,488.1 481.4,487.9 489.5,486.7 497.3,484.6 516.6,477.1 516.6,472.8 517.7,470.3 522.4,465.4 528,462.5 531.5,458.2 535.6,454.8 537.9,454.3 544.4,454.9 566.6,454.6 569.6,452.6 573,452.4 578.3,453.7 583.3,453.8 592.6,452.5 604.8,448.9 616.6,450 625.7,447.3 640.1,440.2 643.5,438.3 646.3,434.6 653.3,428.7 654.6,426.2 655,420.7 654,415.6 654.4,412.9 658.2,406.9 658.3,405 654.2,399.2 651.6,396.7 640.3,392.1 628.7,389.9 625.4,387.9 620.5,382.6 619.5,379 622.3,370.7 624.8,366.3 638,350.8 640.8,346.6 642.7,341.8 643.3,337 642.9,332 641.7,326.9 634.8,307.7 633.9,298.3 635,290.3 637.3,282.3 640.7,274.1 644.6,268 646.2,266.5 648.3,265.7 651,265.9 657.4,270.8 663.5,274.1 670.1,279.5 672.4,281 674.9,281.3 690.6,273.4 694.7,272.7 701.2,272.7 704.2,271.6 714.1,263.8 717.1,260.5 718.5,257.1 719.4,246.4 717.9,231.3 719.1,221.1 714.1,208 712.8,200.9 712.8,189.6 710.2,170.4 709.1,167.3 707.3,165.1 704.7,163.6 692.2,158.8 689.6,157.1 684.9,152.1 682.4,150.3 680.3,149.6 666,148.8 662.4,150.3 653.3,157.5 649.6,158.2 647.1,157.2 623.5,140.5 588.1,110.4 580.4,100.7 568.2,77.6 564,71.6 559.3,66.5 553.7,62.2 547.2,58.8 540,56.3 532.3,54.6 504.9,51.4 506.1,56.6 505.6,59.2 503.8,62.5 503.4,65.3 502.2,67.8 499.9,69.9 494.4,78.1 491.5,80.4 484.3,82 480.3,85.5 473.4,89.8 470.1,90.8 462.3,91.4 457.9,90 453.1,85.7 443.1,81.1 440.4,79.2 437.1,74.8 432,71.3 426.7,64.8 424.7,59.3 424.8,57.6 426.8,54.3 430.9,51.4 434.2,45.3 392.1,46.2 377,47.6 362.1,51.3 355.1,54 329.1,66 322.7,68.4 296.1,74.8 283.8,79.3 278.3,82.5 273,86.5 256.8,104 248.7,111.6 243.9,115.1 234.4,120.6 216.6,128.3 213.7,128 211.8,126.8 210.2,124.8 207.1,118.1 202.1,111.6 199.9,109.6 195.8,108.1 188.5,106.6 181,101.7 173.7,98.2 167.3,96.4 160.1,95.8 143.8,99.7 141.1,101.2 134.1,108.6 132,110 114.6,115.6 112,117.1 106.7,123.2 99.9,127.1 97.8,129.1 93.5,136.8Z" fill="none" stroke="#ffffff" stroke-width="9" opacity=".35" filter="url(#gvs-coast)"/>
+  <path d="M526,190.2 523.3,186.8 517.5,180.3 508.2,170.3 501.7,163.5 494.4,156.9 490.4,153.9 486,151.1 481.3,148.8 476.3,147 470.9,145.7 465.2,145 459.4,144.8 453.5,145.1 447.5,145.9 441.6,146.9 424.9,150.5 414.7,152 409.7,152.3 400,152.1 385.2,151 375.2,150.9 370.2,151.3 365.3,152 360.5,153.1 351.3,156 338,161 328.9,163.8 319.2,165.9 303.1,168.4 292.1,170.6 286.7,172.1 281.6,173.8 276.6,175.9 272,178.3 267.8,181 263.8,183.9 260.1,187 253.3,193.6 247.1,200.5 241.5,207.7 239,211.4 236.9,215.3 235.3,219.3 234.2,223.4 233.9,227.7 234.2,232 235.4,236.4 237.2,240.8 239.7,245.2 242.7,249.4 246.1,253.5 255.9,264.6 258.4,268 260.4,271.3 261.6,274.5 262.2,277.7 262.2,281 261.7,284.4 258.8,295.1 257.6,302.5 257.7,306.2 258.3,309.9 259.4,313.4 261,316.8 265.4,323.2 270.8,329.2 279.3,337.9 285,343.7 288.1,346.5 294.6,351.8 301.9,356.5 310,360.5 322.6,365.7 330.6,369.7 338.2,374.7 345.5,381 357.4,392 361.8,395.6 366.5,399 371.6,402 376.9,404.5 382.5,406.3 388.2,407.6 394.1,408.3 400,408.5 405.9,408.1 417.5,406.5 434.6,403.3 451.4,400.2 462.6,397.8 468,396.2 473.2,394.4 478.2,392.1 482.8,389.4 487.1,386.3 490.9,382.7 494.2,378.9 497.1,374.7 499.7,370.4 503.8,361.7 509.1,349.4 510.8,345.7 517.6,331.8 520.5,325.1 522.8,318.4 525.6,308.6 528.3,302.5 532.6,296.8 538.8,291.2 550.7,282.2 554.7,278.9 558.4,275.4 561.5,271.8 563.8,268 565.4,264.1 566,260.2 565.8,256.3 564.7,252.5 562.9,248.7 560.5,245.1 557.8,241.7 549.1,231.8 544.3,225.4 542.3,222 539,215.1 536.1,207.9 532.7,200.7 530.7,197.1Z" fill="#3b2560" stroke="#0b0612" stroke-width="2.4"/><path d="M609.6,128.6 596.7,118.1 592.3,114.4 588.1,110.4 583.9,105.5 580.4,100.7 577.3,95.3 571.4,83.5 568.2,77.6 564,71.6 559.3,66.5 553.7,62.2 547.2,58.8 540,56.3 532.3,54.6 524.3,53.4 504.9,51.4 506.1,56.5 505.6,59.2 503.8,62.5 503.4,65.3 502.2,67.8 499.9,69.9 494.4,78.1 491.5,80.4 485.8,81.4 484.3,82 480.3,85.5 473.4,89.8 470.1,90.8 462.3,91.4 459.5,90.9 457.9,90 453.1,85.7 443.1,81.1 440.4,79.2 437.1,74.8 432,71.3 426.7,64.8 424.7,59.3 424.8,57.6 426.8,54.3 430.9,51.4 432,49.9 434.2,45.3 414.9,45.9 392.1,46.2 384.5,46.7 377,47.6 369.6,49.1 362.1,51.3 355.1,54 348.4,57 335.4,63.3 329.1,66 322.7,68.4 315.8,70.3 296.1,74.8 289.8,76.8 283.8,79.3 278.3,82.5 273,86.5 268.5,90.7 256.8,104 252.9,108 248.7,111.6 243.9,115.1 239.3,117.9 234.4,120.6 224,125.5 216.6,128.3 213.7,128 211.8,126.8 210.2,124.8 207.1,118.2 202.1,111.6 199.9,109.6 195.8,108.1 188.5,106.6 185.4,105.1 181,101.7 176.7,99.4 173.7,98.2 167.3,96.4 163.9,95.8 160.1,95.8 156.7,96.3 146.9,98.8 143.8,99.7 141.1,101.2 138.5,103.5 134.1,108.6 132,110 158.4,116 169.2,127.9 178.9,141.7 190.7,151.9 205.6,156.6 216.1,169 230.4,174.8 247.7,175.5 263.4,178.9 266.8,181.7 267.8,181 272,178.3 276.6,175.9 281.6,173.8 286.7,172.1 292.1,170.6 303.1,168.4 319.2,165.9 328.9,163.8 338,161 351.3,156 360.5,153.1 365.3,152 370.2,151.3 375.2,150.9 385.2,151 400,152.1 409.7,152.3 414.7,152 424.9,150.5 441.6,146.9 447.5,145.9 453.5,145.1 459.4,144.8 465.2,145 470.9,145.7 476.3,147 481.3,148.8 486,151.1 490.4,153.9 494.4,156.9 501.7,163.5 508.2,170.3 517.5,180.3 523.3,186.8 523.8,187.4 525.6,187.5 541.5,184.5 553.2,174.2 566.8,167.1 580.1,159.5 591.8,149.2 599.9,132.6Z" fill="#2c1c4a" stroke="#0b0612" stroke-width="2.4"/><path d="M649.7,431.5 653.3,428.7 654.6,426.2 655,420.7 654,415.6 654.4,412.9 658.2,406.9 658.3,405 657.4,403.2 654.2,399.2 651.6,396.7 646.8,394.4 640.3,392.1 636.4,391 628.7,389.9 625.4,387.9 620.5,382.6 619.5,379 620.4,375.5 622.3,370.7 624.8,366.3 627.8,362.3 634.7,354.7 638,350.8 640.8,346.6 642.7,341.8 643.3,337 642.9,332 641.7,326.9 636.2,312.2 634.8,307.7 634,303.3 633.9,298.3 635,290.3 637.3,282.3 640.7,274.1 644.6,268 646.2,266.5 648.3,265.7 651,265.9 653,266.9 657.4,270.8 663.5,274.1 666.9,276.6 670.1,279.5 672.4,281 674.9,281.3 678.7,279.7 684.3,276.3 690.6,273.4 694.7,272.7 701.2,272.7 704.2,271.6 710.7,266.3 714.1,263.8 717.1,260.5 718.5,257.1 719.1,253.6 719.4,246.4 719,239.2 717.9,231.3 718.9,224.2 719.1,221.1 717.9,216.9 714.8,210.8 714.1,208 712.8,200.9 712.5,196.7 712.8,189.6 712.5,186.5 711.2,180.7 710.2,170.4 709.1,167.3 707.3,165.1 704.7,163.6 692.2,158.8 689.6,157.1 684.9,152.1 682.4,150.3 680.3,149.6 675.2,149.6 668.9,148.7 666,148.8 662.4,150.3 660.2,151.9 653.3,157.5 649.6,158.2 647.1,157.2 643.6,154.7 633.3,147.8 623.5,140.5 609.6,128.6 599.9,132.6 591.8,149.2 580.1,159.5 566.8,167.1 553.2,174.2 541.5,184.5 525.6,187.5 523.8,187.4 526,190.2 530.7,197.1 532.7,200.7 536.1,207.9 539,215.1 542.3,222 544.3,225.4 549.1,231.8 557.8,241.7 560.5,245.1 562.9,248.7 564.7,252.5 565.8,256.3 566,260.2 565.4,264.1 563.8,268 561.5,271.8 558.4,275.4 554.7,278.9 550.7,282.2 538.8,291.2 532.6,296.8 528.3,302.5 525.6,308.6 522.8,318.4 520.5,325.1 517.6,331.8 510.8,345.7 510.6,346.2 516.1,351.7 531.6,355.9 549.7,356.3 561.5,366.2 572.7,376.9 584.4,387 597.6,394.7 605.5,410.6 616.5,421.7 632.9,424.6 647.5,430.2Z" fill="#33205a" stroke="#0b0612" stroke-width="2.4"/><path d="M209.1,423.4 211.2,424.6 217.1,427.3 223.6,429.6 240.6,434.5 243.8,436.9 244.6,439 244.6,442.6 245.5,445.3 247.2,447.1 255.5,452.3 258.1,456.7 262.4,460.1 264.9,463 268.1,466 272.8,471 278.5,473.6 281.6,475.8 286.4,479.9 290.2,481.4 293,482 298.7,482.3 301.9,481.9 308.6,480 312.9,479.2 319.6,478.8 322.3,478.2 328.2,476.3 336.4,474.7 338.8,473.7 342.7,471.2 345.1,468.8 346,465.4 345.7,461.9 346,460.2 348.4,457 350.9,455.9 352.6,455.8 364.4,457.3 378.1,459.3 392.1,461.8 399.3,463.6 406.5,465.8 414,468.6 421.7,471.8 438.2,479.1 446.8,482.5 455.6,485.3 464.4,487.2 473,488.1 481.4,487.9 489.5,486.7 497.3,484.6 504.7,482 516.6,477.1 516.6,472.8 517.7,470.3 522.4,465.4 524.8,463.8 528,462.5 531.5,458.2 535.6,454.8 537.9,454.3 544.4,454.9 547.1,454.5 552.6,454.9 565.3,454.5 566.6,454.6 569.6,452.6 573,452.4 578.3,453.7 583.3,453.8 592.6,452.5 597.2,451.3 601.1,449.8 604.8,448.9 608,449.1 612.2,449.8 616.6,450 619.5,449.4 625.7,447.3 629.4,445.8 635.6,442.1 640.1,440.2 643.5,438.3 646.3,434.6 649.7,431.5 647.5,430.2 632.9,424.6 616.5,421.7 605.5,410.6 597.6,394.7 584.4,387 572.7,376.9 561.5,366.2 549.7,356.3 531.6,355.9 516.1,351.7 510.6,346.2 509.1,349.4 503.8,361.7 499.7,370.4 497.1,374.7 494.2,378.9 490.9,382.7 487.1,386.3 482.8,389.4 478.2,392.1 473.2,394.4 468,396.2 462.6,397.8 451.4,400.2 434.6,403.3 417.5,406.5 405.9,408.1 400,408.5 394.1,408.3 388.2,407.6 382.5,406.3 376.9,404.5 371.6,402 366.5,399 361.8,395.6 357.4,392 345.5,381 338.2,374.7 330.6,369.7 322.6,365.7 310,360.5 301.9,356.5 294.6,351.8 288.1,346.5 287.3,345.8 284.5,348 268.5,352.6 258.1,364.1 252.5,381.3 241.4,391.9 229.8,401.8 218.3,412Z" fill="#2a1a46" stroke="#0b0612" stroke-width="2.4"/><path d="M132,110 130.3,110.8 114.6,115.6 112,117.1 106.7,123.2 99.9,127.1 97.8,129.1 93.5,136.8 92,141.2 92.6,148.4 93.5,150.7 95.3,152.6 102.9,157 105.1,159.8 105.9,163.6 107,166.8 109,170.7 109.5,172.9 109.1,175.1 107.9,177.2 98.1,190.9 95.4,195.7 93.3,200.7 92.1,205.8 91.7,211.4 92.1,216.7 93,221.9 96.6,237.3 99.7,252.2 101,257.3 102.7,262.1 104.8,266.8 109.2,276 111.2,280.4 112.6,284.8 113.3,289.4 112.9,296.1 115.7,300.1 117.4,303.2 121,311.9 122.4,318.6 124.8,323.4 125.1,325.1 124.8,331.5 125.6,334.5 128.2,341.8 138.1,348 143.1,351.5 147.7,355.1 152.1,359 163.2,370.4 174.5,381.8 178.1,385.7 181.8,390 184.9,394.4 193.7,408.2 197,412.9 200.9,417.2 205.5,421.1 209.1,423.4 218.3,412 229.8,401.8 241.4,391.9 252.5,381.3 258.1,364.1 268.5,352.6 284.5,348 287.3,345.8 285,343.7 279.3,337.9 270.8,329.2 265.4,323.2 261,316.8 259.4,313.4 258.3,309.9 257.7,306.2 257.6,302.5 258.8,295.1 261.7,284.4 262.2,281 262.2,277.7 261.6,274.5 260.4,271.3 258.4,268 255.9,264.6 246.1,253.5 242.7,249.4 239.7,245.2 237.2,240.8 235.4,236.4 234.2,232 233.9,227.7 234.2,223.4 235.3,219.3 236.9,215.3 239,211.4 241.5,207.7 247.1,200.5 253.3,193.6 260.1,187 263.8,183.9 266.8,181.7 263.4,178.9 247.7,175.5 230.4,174.8 216.1,169 205.6,156.6 190.7,151.9 178.9,141.7 169.2,127.9 158.4,116Z" fill="#301f52" stroke="#0b0612" stroke-width="2.4"/>
+  <path d="M92,141.2 92.6,148.4 93.5,150.7 95.3,152.6 102.9,157 105.1,159.8 105.9,163.6 109.5,172.9 109.1,175.1 98.1,190.9 93.3,200.7 92.1,205.8 91.7,211.4 93,221.9 101,257.3 104.8,266.8 111.2,280.4 113.3,289.4 112.9,296.1 117.4,303.2 121,311.9 122.4,318.6 124.8,323.4 124.8,331.5 128.2,341.8 138.1,348 147.7,355.1 174.5,381.8 181.8,390 193.7,408.2 200.9,417.2 209.1,423.4 217.1,427.3 240.6,434.5 243.8,436.9 245.5,445.3 247.2,447.1 255.5,452.3 258.1,456.7 262.4,460.1 272.8,471 278.5,473.6 286.4,479.9 293,482 301.9,481.9 312.9,479.2 319.6,478.8 338.8,473.7 342.7,471.2 345.1,468.8 346,465.4 346,460.2 348.4,457 350.9,455.9 352.6,455.8 378.1,459.3 399.3,463.6 414,468.6 438.2,479.1 455.6,485.3 464.4,487.2 473,488.1 481.4,487.9 489.5,486.7 497.3,484.6 516.6,477.1 516.6,472.8 517.7,470.3 522.4,465.4 528,462.5 531.5,458.2 535.6,454.8 537.9,454.3 544.4,454.9 566.6,454.6 569.6,452.6 573,452.4 578.3,453.7 583.3,453.8 592.6,452.5 604.8,448.9 616.6,450 625.7,447.3 640.1,440.2 643.5,438.3 646.3,434.6 653.3,428.7 654.6,426.2 655,420.7 654,415.6 654.4,412.9 658.2,406.9 658.3,405 654.2,399.2 651.6,396.7 640.3,392.1 628.7,389.9 625.4,387.9 620.5,382.6 619.5,379 622.3,370.7 624.8,366.3 638,350.8 640.8,346.6 642.7,341.8 643.3,337 642.9,332 641.7,326.9 634.8,307.7 633.9,298.3 635,290.3 637.3,282.3 640.7,274.1 644.6,268 646.2,266.5 648.3,265.7 651,265.9 657.4,270.8 663.5,274.1 670.1,279.5 672.4,281 674.9,281.3 690.6,273.4 694.7,272.7 701.2,272.7 704.2,271.6 714.1,263.8 717.1,260.5 718.5,257.1 719.4,246.4 717.9,231.3 719.1,221.1 714.1,208 712.8,200.9 712.8,189.6 710.2,170.4 709.1,167.3 707.3,165.1 704.7,163.6 692.2,158.8 689.6,157.1 684.9,152.1 682.4,150.3 680.3,149.6 666,148.8 662.4,150.3 653.3,157.5 649.6,158.2 647.1,157.2 623.5,140.5 588.1,110.4 580.4,100.7 568.2,77.6 564,71.6 559.3,66.5 553.7,62.2 547.2,58.8 540,56.3 532.3,54.6 504.9,51.4 506.1,56.6 505.6,59.2 503.8,62.5 503.4,65.3 502.2,67.8 499.9,69.9 494.4,78.1 491.5,80.4 484.3,82 480.3,85.5 473.4,89.8 470.1,90.8 462.3,91.4 457.9,90 453.1,85.7 443.1,81.1 440.4,79.2 437.1,74.8 432,71.3 426.7,64.8 424.7,59.3 424.8,57.6 426.8,54.3 430.9,51.4 434.2,45.3 392.1,46.2 377,47.6 362.1,51.3 355.1,54 329.1,66 322.7,68.4 296.1,74.8 283.8,79.3 278.3,82.5 273,86.5 256.8,104 248.7,111.6 243.9,115.1 234.4,120.6 216.6,128.3 213.7,128 211.8,126.8 210.2,124.8 207.1,118.1 202.1,111.6 199.9,109.6 195.8,108.1 188.5,106.6 181,101.7 173.7,98.2 167.3,96.4 160.1,95.8 143.8,99.7 141.1,101.2 134.1,108.6 132,110 114.6,115.6 112,117.1 106.7,123.2 99.9,127.1 97.8,129.1 93.5,136.8Z" fill="none" stroke="#ffffff" stroke-width="3"/>
+</g>
+<g font-family="'Chakra Petch',sans-serif" font-size="9.5" font-weight="600" letter-spacing="1.6" fill="#ece4f5" text-anchor="middle" opacity=".9"><text x="201.0" y="244.3">MAIN</text><text x="249.8" y="181.5">SCOPE</text><text x="283.4" y="219.1">VOLLEY</text><text x="159.0" y="302.3">PARRY</text><text x="103.4" y="221.5">WAFFLE</text></g>
+<polygon points="54.5,139.0 56.9,145.6 63.5,148.0 56.9,150.4 54.5,157.0 52.1,150.4 45.5,148.0 52.1,145.6" fill="#01aafe" filter="url(#gvs-glow)"/><polygon points="81.2,104.2 83.6,110.8 90.2,113.2 83.6,115.6 81.2,122.2 78.8,115.6 72.2,113.2 78.8,110.8" fill="#fc1f1f" filter="url(#gvs-glow)"/><polygon points="116.0,77.5 118.4,84.1 125.0,86.5 118.4,88.9 116.0,95.5 113.6,88.9 107.0,86.5 113.6,84.1" fill="#fc1f1f" filter="url(#gvs-glow)"/><polygon points="156.5,60.7 158.9,67.3 165.5,69.7 158.9,72.1 156.5,78.7 154.1,72.1 147.5,69.7 154.1,67.3" fill="#9aa6a6" filter="url(#gvs-glow)"/><polygon points="200.0,55.0 202.4,61.6 209.0,64.0 202.4,66.4 200.0,73.0 197.6,66.4 191.0,64.0 197.6,61.6" fill="#3f7dff" filter="url(#gvs-glow)"/><polygon points="243.5,60.7 245.9,67.3 252.5,69.7 245.9,72.1 243.5,78.7 241.1,72.1 234.5,69.7 241.1,67.3" fill="#3f7dff" filter="url(#gvs-glow)"/><polygon points="284.0,77.5 286.4,84.1 293.0,86.5 286.4,88.9 284.0,95.5 281.6,88.9 275.0,86.5 281.6,84.1" fill="#fc1f1f" filter="url(#gvs-glow)"/><polygon points="318.8,104.2 321.2,110.8 327.8,113.2 321.2,115.6 318.8,122.2 316.4,115.6 309.8,113.2 316.4,110.8" fill="#3f7dff" filter="url(#gvs-glow)"/><polygon points="345.5,139.0 347.9,145.6 354.5,148.0 347.9,150.4 345.5,157.0 343.1,150.4 336.5,148.0 343.1,145.6" fill="#fc1f1f" filter="url(#gvs-glow)"/>
+<text x="200" y="440" text-anchor="middle" font-family="'Chakra Petch',sans-serif" font-size="22" font-weight="700" letter-spacing="9" fill="#ece4f5">NIGHTWORK</text>
+<text x="200" y="466" text-anchor="middle" font-family="'Chakra Petch',sans-serif" font-size="12" font-weight="500" letter-spacing="4" fill="#ff8fb4">2015 · 2025</text>
+</svg></template>
 
 <nav class="toc"></nav>
 
@@ -153,177 +423,196 @@
 <h2 id="dossiers">The Nine Governors</h2>
 <p>Each governor inherited an escalating crucible of digital warfare, physical diaspora altercations in Sacramento and Los Angeles, covert cyber-operations, and deep-state intrigue. Below are the definitive dossiers of the nine executives.</p>
 
-<div class="governor-grid">
+<div class="gv-dossiers" id="dossiers-box">
+<article class="gv-doss" id="gov-elusion" data-gov="elusion" data-party="hm">
+  <div class="gv-d-pic">
+    <span class="gv-d-frame"><img data-image="elusion" alt="Portrait of Elusion"><b class="gv-d-letter" aria-hidden="true">E</b><i class="gv-d-scan" aria-hidden="true"></i></span>
+    <span class="gv-d-stage" aria-hidden="true"><span class="gv-d-sp"><img data-image="elusion_sprite" alt="Elusion"><img class="gv-eye" data-image="elusion_blink_sprite" alt=""></span><i class="gv-d-plinth"></i></span>
+  </div>
+  <div class="gv-d-body">
+    <p class="gv-d-eyebrow"><span class="gv-badge">Founder</span><span class="gv-d-ord">1st Governor of Nightwork</span></p>
+    <div class="gv-d-name no-name" role="heading" aria-level="3"><a href="Elusion.html">Elusion</a></div>
+    <p class="gv-d-alias no-name">Mark Ionescu • “The Old Wizard” • “The Awakener”</p>
+    <p class="gv-d-term"><span>11 July 2015 – 31 December 2016</span><small>1 year, 5 months · 540 days</small></p>
+    <div class="gv-mini" aria-hidden="true"><i data-party="hm" class="on" style="left:1.836%;width:13.964%"></i><i data-party="or" class="" style="left:15.800%;width:17.093%"></i><i data-party="or" class="" style="left:32.971%;width:0.828%"></i><i data-party="in" class="" style="left:33.773%;width:11.896%"></i><i data-party="pv" class="" style="left:45.643%;width:17.481%"></i><i data-party="pv" class="" style="left:63.098%;width:4.758%"></i><i data-party="or" class="" style="left:67.830%;width:4.706%"></i><i data-party="pv" class="" style="left:72.511%;width:18.852%"></i><i data-party="or" class="" style="left:91.363%;width:5.999%"></i><span class="a">2015</span><span class="b">2025</span></div>
+    <div class="gv-d-quote no-name"><p>“A truce implies a balance of power. There is no balance here. An independent Nightwork is an ideological threat to the Ninzard framework.”</p></div>
+    <div class="gv-d-meta"><div><span class="gv-k">Party</span><span class="gv-v"><span class="hm">Home</span></span></div><div><span class="gv-k">Origin</span><span class="gv-v">Sacramento / SoCal</span></div><div><span class="gv-k">Landmark Conflict</span><span class="gv-v">Nightian War / Civil War</span></div><div><span class="gv-k">Signature Move</span><span class="gv-v">TCP Tarpit Defense</span></div></div>
+    <p class="gv-d-foot no-name"><a class="gv-d-more" href="Elusion.html">Read the article</a><span class="gv-d-nav"><span></span><a class="gv-next" href="#gov-degreez" aria-label="Next: DegreeZ">DegreeZ ›</a></span></p>
+  </div>
+</article>
+<article class="gv-doss" id="gov-degreez" data-gov="degreez" data-party="or">
+  <div class="gv-d-pic">
+    <span class="gv-d-frame"><img data-image="degreez" alt="Portrait of DegreeZ"><b class="gv-d-letter" aria-hidden="true">D</b><i class="gv-d-scan" aria-hidden="true"></i></span>
+    <span class="gv-d-stage" aria-hidden="true"><span class="gv-d-sp"><img data-image="degreez_sprite" alt="DegreeZ"><img class="gv-eye" data-image="degreez_blink_sprite" alt=""></span><i class="gv-d-plinth"></i></span>
+  </div>
+  <div class="gv-d-body">
+    <p class="gv-d-eyebrow"><span class="gv-badge">Golden Era</span><span class="gv-d-ord">2nd Governor of Nightwork</span></p>
+    <div class="gv-d-name no-name" role="heading" aria-level="3"><a href="DegreeZ.html">DegreeZ</a></div>
+    <p class="gv-d-alias no-name">Jason Kim • “The Commander of Parry”</p>
+    <p class="gv-d-term"><span>1 January 2017 – 23 October 2018</span><small>1 year, 9 months · 661 days</small></p>
+    <div class="gv-mini" aria-hidden="true"><i data-party="hm" class="" style="left:1.836%;width:13.964%"></i><i data-party="or" class="on" style="left:15.800%;width:17.093%"></i><i data-party="or" class="" style="left:32.971%;width:0.828%"></i><i data-party="in" class="" style="left:33.773%;width:11.896%"></i><i data-party="pv" class="" style="left:45.643%;width:17.481%"></i><i data-party="pv" class="" style="left:63.098%;width:4.758%"></i><i data-party="or" class="" style="left:67.830%;width:4.706%"></i><i data-party="pv" class="" style="left:72.511%;width:18.852%"></i><i data-party="or" class="" style="left:91.363%;width:5.999%"></i><span class="a">2015</span><span class="b">2025</span></div>
+    <div class="gv-d-quote no-name"><p>“The war in which they awakened the sleeping giant.”</p></div>
+    <div class="gv-d-meta"><div><span class="gv-k">Party</span><span class="gv-v"><span class="or">Original</span></span></div><div><span class="gv-k">Deputy</span><span class="gv-v">Aceiron / Xorbit</span></div><div><span class="gv-k">Landmark Conflict</span><span class="gv-v">RSN War (2018)</span></div><div><span class="gv-k">Signature Move</span><span class="gv-v">Staged Treason Protocol</span></div></div>
+    <p class="gv-d-foot no-name"><a class="gv-d-more" href="DegreeZ.html">Read the article</a><span class="gv-d-nav"><a class="gv-prev" href="#gov-elusion" aria-label="Previous: Elusion">‹ Elusion</a><a class="gv-next" href="#gov-piggiemlg" aria-label="Next: PiggieMLG">PiggieMLG ›</a></span></p>
+  </div>
+</article>
+<article class="gv-doss" id="gov-piggiemlg" data-gov="piggiemlg" data-party="or">
+  <div class="gv-d-pic">
+    <span class="gv-d-frame"><img data-image="piggiemlg" alt="Portrait of PiggieMLG"><b class="gv-d-letter" aria-hidden="true">P</b><i class="gv-d-scan" aria-hidden="true"></i></span>
+    <span class="gv-d-stage" aria-hidden="true"><span class="gv-d-sp"><img data-image="piggiemlg_sprite" alt="PiggieMLG"><img class="gv-eye" data-image="piggiemlg_blink_sprite" alt=""></span><i class="gv-d-plinth"></i></span>
+  </div>
+  <div class="gv-d-body">
+    <p class="gv-d-eyebrow"><span class="gv-badge">Crisis</span><span class="gv-d-ord">3rd Governor of Nightwork</span></p>
+    <div class="gv-d-name no-name" role="heading" aria-level="3"><a href="PiggieMLG.html">PiggieMLG</a></div>
+    <p class="gv-d-alias no-name">MrPiggie • “The 31-Day Enforcer”</p>
+    <p class="gv-d-term"><span>27 October 2018 – 27 November 2018</span><small>1 month · 32 days</small></p>
+    <div class="gv-mini" aria-hidden="true"><i data-party="hm" class="" style="left:1.836%;width:13.964%"></i><i data-party="or" class="" style="left:15.800%;width:17.093%"></i><i data-party="or" class="on" style="left:32.971%;width:0.828%"></i><i data-party="in" class="" style="left:33.773%;width:11.896%"></i><i data-party="pv" class="" style="left:45.643%;width:17.481%"></i><i data-party="pv" class="" style="left:63.098%;width:4.758%"></i><i data-party="or" class="" style="left:67.830%;width:4.706%"></i><i data-party="pv" class="" style="left:72.511%;width:18.852%"></i><i data-party="or" class="" style="left:91.363%;width:5.999%"></i><span class="a">2015</span><span class="b">2025</span></div>
+    <div class="gv-d-quote no-name"><p>“There will be strict rules that will be enforced throughout the Nightian Faction. Any failure will result in banishment.”</p></div>
+    <div class="gv-d-meta"><div><span class="gv-k">Party</span><span class="gv-v"><span class="or">Original</span></span></div><div><span class="gv-k">Deputy</span><span class="gv-v">Xorbit</span></div><div><span class="gv-k">Landmark Conflict</span><span class="gv-v">Pirate Raiders Incursion</span></div><div><span class="gv-k">Downfall</span><span class="gv-v">Council Impeachment / Doxx</span></div></div>
+    <p class="gv-d-foot no-name"><a class="gv-d-more" href="PiggieMLG.html">Read the article</a><span class="gv-d-nav"><a class="gv-prev" href="#gov-degreez" aria-label="Previous: DegreeZ">‹ DegreeZ</a><a class="gv-next" href="#gov-spikester" aria-label="Next: Spikester">Spikester ›</a></span></p>
+  </div>
+</article>
+<article class="gv-doss" id="gov-spikester" data-gov="spikester" data-party="in">
+  <div class="gv-d-pic">
+    <span class="gv-d-frame"><img data-image="spikester" alt="Portrait of Spikester"><b class="gv-d-letter" aria-hidden="true">S</b><i class="gv-d-scan" aria-hidden="true"></i></span>
+    <span class="gv-d-stage" aria-hidden="true"><span class="gv-d-sp"><img data-image="spikester_sprite" alt="Spikester"><img class="gv-eye" data-image="spikester_blink_sprite" alt=""></span><i class="gv-d-plinth"></i></span>
+  </div>
+  <div class="gv-d-body">
+    <p class="gv-d-eyebrow"><span class="gv-badge">Underground</span><span class="gv-d-ord">4th Governor of Nightwork</span></p>
+    <div class="gv-d-name no-name" role="heading" aria-level="3"><a href="Spikester.html">Spikester</a></div>
+    <p class="gv-d-alias no-name">Davide Tagliaferro • “King of the Garrison State”</p>
+    <p class="gv-d-term"><span>27 November 2018 – 29 February 2020</span><small>1 year, 3 months · 460 days</small></p>
+    <div class="gv-mini" aria-hidden="true"><i data-party="hm" class="" style="left:1.836%;width:13.964%"></i><i data-party="or" class="" style="left:15.800%;width:17.093%"></i><i data-party="or" class="" style="left:32.971%;width:0.828%"></i><i data-party="in" class="on" style="left:33.773%;width:11.896%"></i><i data-party="pv" class="" style="left:45.643%;width:17.481%"></i><i data-party="pv" class="" style="left:63.098%;width:4.758%"></i><i data-party="or" class="" style="left:67.830%;width:4.706%"></i><i data-party="pv" class="" style="left:72.511%;width:18.852%"></i><i data-party="or" class="" style="left:91.363%;width:5.999%"></i><span class="a">2015</span><span class="b">2025</span></div>
+    <div class="gv-d-quote no-name"><p>“Let December 10 be your day of mystery. Tomorrow is a new day.”</p></div>
+    <div class="gv-d-meta"><div><span class="gv-k">Party</span><span class="gv-v"><span class="in">Independent</span></span></div><div><span class="gv-k">Deputy</span><span class="gv-v">Xorbit</span></div><div><span class="gv-k">Landmark Conflict</span><span class="gv-v">War with Quorey / Deadaxz</span></div><div><span class="gv-k">Doctrine</span><span class="gv-v">The Doctrine of Progression</span></div></div>
+    <p class="gv-d-foot no-name"><a class="gv-d-more" href="Spikester.html">Read the article</a><span class="gv-d-nav"><a class="gv-prev" href="#gov-piggiemlg" aria-label="Previous: PiggieMLG">‹ PiggieMLG</a><a class="gv-next" href="#gov-syn" aria-label="Next: Syn">Syn ›</a></span></p>
+  </div>
+</article>
+<article class="gv-doss" id="gov-syn" data-gov="syn" data-party="pv">
+  <div class="gv-d-pic">
+    <span class="gv-d-frame"><img data-image="syn" alt="Portrait of Syn"><b class="gv-d-letter" aria-hidden="true">S</b><i class="gv-d-scan" aria-hidden="true"></i></span>
+    <span class="gv-d-stage" aria-hidden="true"><span class="gv-d-sp"><img data-image="syn_sprite" alt="Syn"><img class="gv-eye" data-image="syn_blink_sprite" alt=""></span><i class="gv-d-plinth"></i></span>
+  </div>
+  <div class="gv-d-body">
+    <p class="gv-d-eyebrow"><span class="gv-badge">Fortress</span><span class="gv-d-ord">5th Governor of Nightwork</span></p>
+    <div class="gv-d-name no-name" role="heading" aria-level="3"><a href="Syn.html">Syn</a></div>
+    <p class="gv-d-alias no-name">Noah Jay Byun • “The Hermit King” • “독사”</p>
+    <p class="gv-d-term"><span>29 February 2020 – 4 January 2022</span><small>1 year, 10 months · 676 days</small></p>
+    <div class="gv-mini" aria-hidden="true"><i data-party="hm" class="" style="left:1.836%;width:13.964%"></i><i data-party="or" class="" style="left:15.800%;width:17.093%"></i><i data-party="or" class="" style="left:32.971%;width:0.828%"></i><i data-party="in" class="" style="left:33.773%;width:11.896%"></i><i data-party="pv" class="on" style="left:45.643%;width:17.481%"></i><i data-party="pv" class="" style="left:63.098%;width:4.758%"></i><i data-party="or" class="" style="left:67.830%;width:4.706%"></i><i data-party="pv" class="" style="left:72.511%;width:18.852%"></i><i data-party="or" class="" style="left:91.363%;width:5.999%"></i><span class="a">2015</span><span class="b">2025</span></div>
+    <div class="gv-d-quote no-name"><p>“Either you privatize the platform or limit free speech. To suggest otherwise is merely an idealistic fallacy.”</p></div>
+    <div class="gv-d-meta"><div><span class="gv-k">Party</span><span class="gv-v"><span class="pv">Preservation</span></span></div><div><span class="gv-k">Deputy</span><span class="gv-v">Cyntaku</span></div><div><span class="gv-k">Landmark Conflict</span><span class="gv-v">UCI Fallout / Pop-Up Revolt</span></div><div><span class="gv-k">Doctrine</span><span class="gv-v">The Axiom Quarantine</span></div></div>
+    <p class="gv-d-foot no-name"><a class="gv-d-more" href="Syn.html">Read the article</a><span class="gv-d-nav"><a class="gv-prev" href="#gov-spikester" aria-label="Previous: Spikester">‹ Spikester</a><a class="gv-next" href="#gov-cyntaku" aria-label="Next: Cyntaku">Cyntaku ›</a></span></p>
+  </div>
+</article>
+<article class="gv-doss" id="gov-cyntaku" data-gov="cyntaku" data-party="pv">
+  <div class="gv-d-pic">
+    <span class="gv-d-frame"><img data-image="cyntaku" alt="Portrait of Cyntaku"><b class="gv-d-letter" aria-hidden="true">C</b><i class="gv-d-scan" aria-hidden="true"></i></span>
+    <span class="gv-d-stage" aria-hidden="true"><span class="gv-d-sp"><img data-image="cyntaku_sprite" alt="Cyntaku"><img class="gv-eye" data-image="cyntaku_blink_sprite" alt=""></span><i class="gv-d-plinth"></i></span>
+  </div>
+  <div class="gv-d-body">
+    <p class="gv-d-eyebrow"><span class="gv-badge">Siege</span><span class="gv-d-ord">6th Governor of Nightwork</span></p>
+    <div class="gv-d-name no-name" role="heading" aria-level="3"><a href="Cyntaku.html">Cyntaku</a></div>
+    <p class="gv-d-alias no-name">Madelyn Schroeder • “The Iron Lady of Volley”</p>
+    <p class="gv-d-term"><span>4 January 2022 – 6 July 2022</span><small>6 months · 184 days</small></p>
+    <div class="gv-mini" aria-hidden="true"><i data-party="hm" class="" style="left:1.836%;width:13.964%"></i><i data-party="or" class="" style="left:15.800%;width:17.093%"></i><i data-party="or" class="" style="left:32.971%;width:0.828%"></i><i data-party="in" class="" style="left:33.773%;width:11.896%"></i><i data-party="pv" class="" style="left:45.643%;width:17.481%"></i><i data-party="pv" class="on" style="left:63.098%;width:4.758%"></i><i data-party="or" class="" style="left:67.830%;width:4.706%"></i><i data-party="pv" class="" style="left:72.511%;width:18.852%"></i><i data-party="or" class="" style="left:91.363%;width:5.999%"></i><span class="a">2015</span><span class="b">2025</span></div>
+    <div class="gv-d-quote no-name"><p>“I do what every governor has done since Elusion. I push for policies because it is the right path to preserving what we treasure.”</p></div>
+    <div class="gv-d-meta"><div><span class="gv-k">Party</span><span class="gv-v"><span class="pv">Preservation</span></span></div><div><span class="gv-k">Deputy</span><span class="gv-v">Adelynn</span></div><div><span class="gv-k">Landmark Conflict</span><span class="gv-v">May Panic / Joygate Fallout</span></div><div><span class="gv-k">Creation</span><span class="gv-v">Nightian-Ninzardian Assembly</span></div></div>
+    <p class="gv-d-foot no-name"><a class="gv-d-more" href="Cyntaku.html">Read the article</a><span class="gv-d-nav"><a class="gv-prev" href="#gov-syn" aria-label="Previous: Syn">‹ Syn</a><a class="gv-next" href="#gov-spinzle" aria-label="Next: Spinzle">Spinzle ›</a></span></p>
+  </div>
+</article>
+<article class="gv-doss" id="gov-spinzle" data-gov="spinzle" data-party="or">
+  <div class="gv-d-pic">
+    <span class="gv-d-frame"><img data-image="spinzle" alt="Portrait of Spinzle"><b class="gv-d-letter" aria-hidden="true">S</b><i class="gv-d-scan" aria-hidden="true"></i></span>
+    <span class="gv-d-stage" aria-hidden="true"><span class="gv-d-sp"><img data-image="spinzle_sprite" alt="Spinzle"><img class="gv-eye" data-image="spinzle_blink_sprite" alt=""></span><i class="gv-d-plinth"></i></span>
+  </div>
+  <div class="gv-d-body">
+    <p class="gv-d-eyebrow"><span class="gv-badge">Technocrat</span><span class="gv-d-ord">7th Governor of Nightwork</span></p>
+    <div class="gv-d-name no-name" role="heading" aria-level="3"><a href="Spinzle.html">Spinzle</a></div>
+    <p class="gv-d-alias no-name">Edith Bethany Arden • “The Cold Architect”</p>
+    <p class="gv-d-term"><span>6 July 2022 – 3 January 2023</span><small>5 months · 182 days</small></p>
+    <div class="gv-mini" aria-hidden="true"><i data-party="hm" class="" style="left:1.836%;width:13.964%"></i><i data-party="or" class="" style="left:15.800%;width:17.093%"></i><i data-party="or" class="" style="left:32.971%;width:0.828%"></i><i data-party="in" class="" style="left:33.773%;width:11.896%"></i><i data-party="pv" class="" style="left:45.643%;width:17.481%"></i><i data-party="pv" class="" style="left:63.098%;width:4.758%"></i><i data-party="or" class="on" style="left:67.830%;width:4.706%"></i><i data-party="pv" class="" style="left:72.511%;width:18.852%"></i><i data-party="or" class="" style="left:91.363%;width:5.999%"></i><span class="a">2015</span><span class="b">2025</span></div>
+    <div class="gv-d-quote no-name"><p>“Hello.”</p></div>
+    <div class="gv-d-meta"><div><span class="gv-k">Party</span><span class="gv-v"><span class="or">OPC Coalition</span></span></div><div><span class="gv-k">Deputy</span><span class="gv-v">Atria</span></div><div><span class="gv-k">Landmark Reform</span><span class="gv-v">“The Ethics” &amp; CVS</span></div><div><span class="gv-k">Secret Weapon</span><span class="gv-v">Dead Man's Switch (Frankfurt)</span></div></div>
+    <p class="gv-d-foot no-name"><a class="gv-d-more" href="Spinzle.html">Read the article</a><span class="gv-d-nav"><a class="gv-prev" href="#gov-cyntaku" aria-label="Previous: Cyntaku">‹ Cyntaku</a><a class="gv-next" href="#gov-adelynn" aria-label="Next: Adelynn">Adelynn ›</a></span></p>
+  </div>
+</article>
+<article class="gv-doss" id="gov-adelynn" data-gov="adelynn" data-party="pv">
+  <div class="gv-d-pic">
+    <span class="gv-d-frame"><img data-image="adelynn" alt="Portrait of Adelynn"><b class="gv-d-letter" aria-hidden="true">A</b><i class="gv-d-scan" aria-hidden="true"></i></span>
+    <span class="gv-d-stage" aria-hidden="true"><span class="gv-d-sp"><img data-image="adelynn_sprite" alt="Adelynn"><img class="gv-eye" data-image="adelynn_blink_sprite" alt=""></span><i class="gv-d-plinth"></i></span>
+  </div>
+  <div class="gv-d-body">
+    <p class="gv-d-eyebrow"><span class="gv-badge">Sanctuary</span><span class="gv-d-ord">8th Governor of Nightwork</span></p>
+    <div class="gv-d-name no-name" role="heading" aria-level="3"><a href="Adelynn.html">Adelynn</a></div>
+    <p class="gv-d-alias no-name">Adelynn Leclaire • “The Velvet Fortress”</p>
+    <p class="gv-d-term"><span>3 January 2023 – 31 December 2024</span><small>1 year, 11 months · 729 days</small></p>
+    <div class="gv-mini" aria-hidden="true"><i data-party="hm" class="" style="left:1.836%;width:13.964%"></i><i data-party="or" class="" style="left:15.800%;width:17.093%"></i><i data-party="or" class="" style="left:32.971%;width:0.828%"></i><i data-party="in" class="" style="left:33.773%;width:11.896%"></i><i data-party="pv" class="" style="left:45.643%;width:17.481%"></i><i data-party="pv" class="" style="left:63.098%;width:4.758%"></i><i data-party="or" class="" style="left:67.830%;width:4.706%"></i><i data-party="pv" class="on" style="left:72.511%;width:18.852%"></i><i data-party="or" class="" style="left:91.363%;width:5.999%"></i><span class="a">2015</span><span class="b">2025</span></div>
+    <div class="gv-d-quote no-name"><p>“We are the Dreadnought. They are merely torpedo boats trying to scratch the hull.”</p></div>
+    <div class="gv-d-meta"><div><span class="gv-k">Party</span><span class="gv-v"><span class="pv">Preservation (Logos)</span></span></div><div><span class="gv-k">Deputy</span><span class="gv-v">Grace</span></div><div><span class="gv-k">Landmark Reform</span><span class="gv-v">Equalization &amp; Sponsorship</span></div><div><span class="gv-k">Moral Stand</span><span class="gv-v">Foreclosure Site Extraction</span></div></div>
+    <p class="gv-d-foot no-name"><a class="gv-d-more" href="Adelynn.html">Read the article</a><span class="gv-d-nav"><a class="gv-prev" href="#gov-spinzle" aria-label="Previous: Spinzle">‹ Spinzle</a><a class="gv-next" href="#gov-aceiron" aria-label="Next: Aceiron">Aceiron ›</a></span></p>
+  </div>
+</article>
+<article class="gv-doss" id="gov-aceiron" data-gov="aceiron" data-party="or">
+  <div class="gv-d-pic">
+    <span class="gv-d-frame"><img data-image="aceiron" alt="Portrait of Aceiron"><b class="gv-d-letter" aria-hidden="true">A</b><i class="gv-d-scan" aria-hidden="true"></i></span>
+    <span class="gv-d-stage" aria-hidden="true"><span class="gv-d-sp"><img data-image="aceiron_sprite" alt="Aceiron"><img class="gv-eye" data-image="aceiron_blink_sprite" alt=""></span><i class="gv-d-plinth"></i></span>
+  </div>
+  <div class="gv-d-body">
+    <p class="gv-d-eyebrow"><span class="gv-badge">Sovereign</span><span class="gv-d-ord">9th Governor of Nightwork</span></p>
+    <div class="gv-d-name no-name" role="heading" aria-level="3"><a href="Aceiron.html">Aceiron</a></div>
+    <p class="gv-d-alias no-name">Caleb Jensen • “The Mad Magician”</p>
+    <p class="gv-d-term"><span>1 January 2025 – 20 August 2025</span><small>7 months · 232 days</small></p>
+    <div class="gv-mini" aria-hidden="true"><i data-party="hm" class="" style="left:1.836%;width:13.964%"></i><i data-party="or" class="" style="left:15.800%;width:17.093%"></i><i data-party="or" class="" style="left:32.971%;width:0.828%"></i><i data-party="in" class="" style="left:33.773%;width:11.896%"></i><i data-party="pv" class="" style="left:45.643%;width:17.481%"></i><i data-party="pv" class="" style="left:63.098%;width:4.758%"></i><i data-party="or" class="" style="left:67.830%;width:4.706%"></i><i data-party="pv" class="" style="left:72.511%;width:18.852%"></i><i data-party="or" class="on" style="left:91.363%;width:5.999%"></i><span class="a">2015</span><span class="b">2025</span></div>
+    <div class="gv-d-quote no-name"><p>“Nexit is done. Do not help us. Cat will die. The real war starts today.”</p></div>
+    <div class="gv-d-meta"><div><span class="gv-k">Party</span><span class="gv-v"><span class="or">Original</span></span></div><div><span class="gv-k">Deputy</span><span class="gv-v">AJ</span></div><div><span class="gv-k">Landmark Action</span><span class="gv-v">Execution of Nexit</span></div><div><span class="gv-k">Final Decree</span><span class="gv-v">Abolition of the Governorship</span></div></div>
+    <p class="gv-d-foot no-name"><a class="gv-d-more" href="Aceiron.html">Read the article</a><span class="gv-d-nav"><a class="gv-prev" href="#gov-adelynn" aria-label="Previous: Adelynn">‹ Adelynn</a><span></span></span></p>
+  </div>
+</article>
+</div>
+</section>
 
-  <!-- 1. ELUSION -->
-  <article class="governor-card">
-    <div>
-      <span class="gov-badge badge-feudal">Founder</span>
-      <span class="gov-number">1st Governor</span>
-      <h3 class="gov-name"><a href="Elusion.html">Elusion</a></h3>
-      <div class="gov-alias">Mark Ionescu • “The Old Wizard” • “The Awakener”</div>
-      <div class="gov-term">11 July 2015 – 31 December 2016</div>
-      <div class="gov-quote">“A truce implies a balance of power. There is no balance here. An independent Nightwork is an ideological threat to the Ninzard framework.”</div>
-    </div>
-    <div class="gov-meta">
-      <div><strong>Party</strong> <span class="badge-party bp-home">Home</span></div>
-      <div><strong>Origin</strong> Sacramento / SoCal</div>
-      <div><strong>Landmark Conflict</strong> Nightian War / Civil War</div>
-      <div><strong>Signature Move</strong> TCP Tarpit Defense</div>
-    </div>
-  </article>
+<section>
+<h2 id="numbers">By the numbers</h2>
+<p>From Elusion's first day to the abolition of the office, Nightwork had a governor for a little over ten years. The Preservation Party held it for the longest share of that time, and Adelynn served the longest of the nine terms.</p>
+<div class="gv-tiles no-name">
+<div class="gv-tile"><b>9</b><span>governors in ten years</span></div>
+<div class="gv-tile"><b>10 years</b><span>11 July 2015 – 22 September 2025</span></div>
+<div class="gv-tile"><b>729 days</b><span>longest term: Adelynn</span></div>
+<div class="gv-tile"><b>32 days</b><span>shortest term: PiggieMLG</span></div>
+</div>
 
-  <!-- 2. DEGREEZ -->
-  <article class="governor-card">
-    <div>
-      <span class="gov-badge badge-feudal">Golden Era</span>
-      <span class="gov-number">2nd Governor</span>
-      <h3 class="gov-name"><a href="DegreeZ.html">DegreeZ</a></h3>
-      <div class="gov-alias">Jason Kim • “The Commander of Parry”</div>
-      <div class="gov-term">1 January 2017 – 23 October 2018</div>
-      <div class="gov-quote">“The war in which they awakened the sleeping giant.”</div>
-    </div>
-    <div class="gov-meta">
-      <div><strong>Party</strong> <span class="badge-party bp-orie">Original</span></div>
-      <div><strong>Deputy</strong> Caleb Jensen / Xorbit</div>
-      <div><strong>Landmark Conflict</strong> RSN War (2018)</div>
-      <div><strong>Signature Move</strong> Staged Treason Protocol</div>
-    </div>
-  </article>
-
-  <!-- 3. PIGGIEMLG -->
-  <article class="governor-card">
-    <div>
-      <span class="gov-badge badge-garrison">Crisis</span>
-      <span class="gov-number">3rd Governor</span>
-      <h3 class="gov-name"><a href="PiggieMLG.html">PiggieMLG</a></h3>
-      <div class="gov-alias">MrPiggie • “The 31-Day Enforcer”</div>
-      <div class="gov-term">27 October 2018 – 27 November 2018</div>
-      <div class="gov-quote">“There will be strict rules that will be enforced throughout the Nightian Faction. Any failure will result in banishment.”</div>
-    </div>
-    <div class="gov-meta">
-      <div><strong>Party</strong> <span class="badge-party bp-orie">Original</span></div>
-      <div><strong>Deputy</strong> Xorbit</div>
-      <div><strong>Landmark Conflict</strong> Pirate Raiders Incursion</div>
-      <div><strong>Downfall</strong> Council Impeachment / Doxx</div>
-    </div>
-  </article>
-
-  <!-- 4. SPIKESTER -->
-  <article class="governor-card">
-    <div>
-      <span class="gov-badge badge-garrison">Underground</span>
-      <span class="gov-number">4th Governor</span>
-      <h3 class="gov-name"><a href="Spikester.html">Spikester</a></h3>
-      <div class="gov-alias">Davide Tagliaferro • “King of the Garrison State”</div>
-      <div class="gov-term">27 November 2018 – 29 February 2020</div>
-      <div class="gov-quote">“Let December 10 be your day of mystery. Tomorrow is a new day.”</div>
-    </div>
-    <div class="gov-meta">
-      <div><strong>Party</strong> <span class="badge-party bp-ind">Independent</span></div>
-      <div><strong>Deputy</strong> Xorbit</div>
-      <div><strong>Landmark Conflict</strong> War with Quorey / Deadaxz</div>
-      <div><strong>Doctrine</strong> The Doctrine of Progression</div>
-    </div>
-  </article>
-
-  <!-- 5. SYN -->
-  <article class="governor-card">
-    <div>
-      <span class="gov-badge badge-preservate">Fortress</span>
-      <span class="gov-number">5th Governor</span>
-      <h3 class="gov-name"><a href="Syn.html">Syn</a></h3>
-      <div class="gov-alias">Noah Jay Byun • “The Hermit King” • “독사”</div>
-      <div class="gov-term">1 March 2020 – 7 January 2022</div>
-      <div class="gov-quote">“Either you privatize the platform or limit free speech. To suggest otherwise is merely an idealistic fallacy.”</div>
-    </div>
-    <div class="gov-meta">
-      <div><strong>Party</strong> <span class="badge-party bp-pv">Preservation</span></div>
-      <div><strong>Deputy</strong> Cyntaku</div>
-      <div><strong>Landmark Conflict</strong> UCI Fallout / Pop-Up Revolt</div>
-      <div><strong>Doctrine</strong> The Axiom Quarantine</div>
-    </div>
-  </article>
-
-  <!-- 6. CYNTAKU -->
-  <article class="governor-card">
-    <div>
-      <span class="gov-badge badge-preservate">Siege</span>
-      <span class="gov-number">6th Governor</span>
-      <h3 class="gov-name"><a href="Cyntaku.html">Cyntaku</a></h3>
-      <div class="gov-alias">Madelyn Schroeder • “The Iron Lady of Volley”</div>
-      <div class="gov-term">7 January 2022 – 10 July 2022</div>
-      <div class="gov-quote">“I do what every governor has done since Elusion. I push for policies because it is the right path to preserving what we treasure.”</div>
-    </div>
-    <div class="gov-meta">
-      <div><strong>Party</strong> <span class="badge-party bp-pv">Preservation</span></div>
-      <div><strong>Deputy</strong> Adelynn</div>
-      <div><strong>Landmark Conflict</strong> May Panic / Joygate Fallout</div>
-      <div><strong>Creation</strong> Nightian-Ninzardian Assembly</div>
-    </div>
-  </article>
-
-  <!-- 7. SPINZLE -->
-  <article class="governor-card">
-    <div>
-      <span class="gov-badge badge-orie">Technocrat</span>
-      <span class="gov-number">7th Governor</span>
-      <h3 class="gov-name"><a href="Spinzle.html">Spinzle</a></h3>
-      <div class="gov-alias">Edith Bethany Arden • “The Cold Architect”</div>
-      <div class="gov-term">10 July 2022 – 3 January 2023</div>
-      <div class="gov-quote">“Hello.”</div>
-    </div>
-    <div class="gov-meta">
-      <div><strong>Party</strong> <span class="badge-party bp-pop">OPC Coalition</span></div>
-      <div><strong>Deputy</strong> Atria</div>
-      <div><strong>Landmark Reform</strong> Integrity Protocols &amp; CVS</div>
-      <div><strong>Secret Weapon</strong> Dead Man's Switch (Frankfurt)</div>
-    </div>
-  </article>
-
-  <!-- 8. ADELYNN -->
-  <article class="governor-card">
-    <div>
-      <span class="gov-badge badge-preservate">Sanctuary</span>
-      <span class="gov-number">8th Governor</span>
-      <h3 class="gov-name"><a href="Adelynn.html">Adelynn</a></h3>
-      <div class="gov-alias">Adelynn Leclaire • “The Velvet Fortress”</div>
-      <div class="gov-term">3 January 2023 – 31 December 2024</div>
-      <div class="gov-quote">“We are the Dreadnought. They are merely torpedo boats trying to scratch the hull.”</div>
-    </div>
-    <div class="gov-meta">
-      <div><strong>Party</strong> <span class="badge-party bp-pv">Preservation (Logos)</span></div>
-      <div><strong>Deputy</strong> Grace</div>
-      <div><strong>Landmark Reform</strong> Equalization &amp; Sponsorship</div>
-      <div><strong>Moral Stand</strong> Foreclosure Site Extraction</div>
-    </div>
-  </article>
-
-  <!-- 9. ACEIRON -->
-  <article class="governor-card">
-    <div>
-      <span class="gov-badge badge-nexit">Sovereign</span>
-      <span class="gov-number">9th Governor</span>
-      <h3 class="gov-name"><a href="Aceiron.html">Aceiron</a></h3>
-      <div class="gov-alias">Caleb Jensen • “The Mad Magician”</div>
-      <div class="gov-term">1 January 2025 – 22 September 2025</div>
-      <div class="gov-quote">“Nexit is done. Do not help us. Cat will die. The real war starts today.”</div>
-    </div>
-    <div class="gov-meta">
-      <div><strong>Party</strong> <span class="badge-party bp-orie">Original</span></div>
-      <div><strong>Deputy</strong> AJ</div>
-      <div><strong>Landmark Action</strong> Execution of Nexit</div>
-      <div><strong>Final Decree</strong> Abolition of the Governorship</div>
-    </div>
-  </article>
-
+<div class="gv-numbers">
+<div class="gv-chart" role="img" aria-label="Days in office for each governor, longest first">
+<p class="gv-chart-t">Days in office</p>
+<div class="gv-row" data-gov="adelynn" data-party="pv" title="Adelynn: 3 January 2023 – 31 December 2024 (729 days)"><span class="gv-row-n">Adelynn <small>VIII</small></span><span class="gv-row-bar"><i style="width:100.00%"></i></span><span class="gv-row-v">729</span></div>
+<div class="gv-row" data-gov="syn" data-party="pv" title="Syn: 29 February 2020 – 4 January 2022 (676 days)"><span class="gv-row-n">Syn <small>V</small></span><span class="gv-row-bar"><i style="width:92.73%"></i></span><span class="gv-row-v">676</span></div>
+<div class="gv-row" data-gov="degreez" data-party="or" title="DegreeZ: 1 January 2017 – 23 October 2018 (661 days)"><span class="gv-row-n">DegreeZ <small>II</small></span><span class="gv-row-bar"><i style="width:90.67%"></i></span><span class="gv-row-v">661</span></div>
+<div class="gv-row" data-gov="elusion" data-party="hm" title="Elusion: 11 July 2015 – 31 December 2016 (540 days)"><span class="gv-row-n">Elusion <small>I</small></span><span class="gv-row-bar"><i style="width:74.07%"></i></span><span class="gv-row-v">540</span></div>
+<div class="gv-row" data-gov="spikester" data-party="in" title="Spikester: 27 November 2018 – 29 February 2020 (460 days)"><span class="gv-row-n">Spikester <small>IV</small></span><span class="gv-row-bar"><i style="width:63.10%"></i></span><span class="gv-row-v">460</span></div>
+<div class="gv-row" data-gov="aceiron" data-party="or" title="Aceiron: 1 January 2025 – 20 August 2025 (232 days)"><span class="gv-row-n">Aceiron <small>IX</small></span><span class="gv-row-bar"><i style="width:31.82%"></i></span><span class="gv-row-v">232</span></div>
+<div class="gv-row" data-gov="cyntaku" data-party="pv" title="Cyntaku: 4 January 2022 – 6 July 2022 (184 days)"><span class="gv-row-n">Cyntaku <small>VI</small></span><span class="gv-row-bar"><i style="width:25.24%"></i></span><span class="gv-row-v">184</span></div>
+<div class="gv-row" data-gov="spinzle" data-party="or" title="Spinzle: 6 July 2022 – 3 January 2023 (182 days)"><span class="gv-row-n">Spinzle <small>VII</small></span><span class="gv-row-bar"><i style="width:24.97%"></i></span><span class="gv-row-v">182</span></div>
+<div class="gv-row" data-gov="piggiemlg" data-party="or" title="PiggieMLG: 27 October 2018 – 27 November 2018 (32 days)"><span class="gv-row-n">PiggieMLG <small>III</small></span><span class="gv-row-bar"><i style="width:4.39%"></i></span><span class="gv-row-v">32</span></div>
+</div>
+<div class="gv-chart gv-share" role="img" aria-label="Share of the decade governed by each party">
+<p class="gv-chart-t">The decade by party <small>days in office</small></p><div class="gv-stack">
+<i data-party="pv" style="flex:1589" title="Preservation: 1589 days (43%)"></i>
+<i data-party="or" style="flex:1107" title="Original: 1107 days (30%)"></i>
+<i data-party="hm" style="flex:540" title="Home: 540 days (15%)"></i>
+<i data-party="in" style="flex:460" title="Independent: 460 days (12%)"></i>
+</div><ul class="gv-legend">
+<li data-party="pv"><i></i><span class="pv">Preservation</span> <b>43%</b> <small>1589 days</small></li>
+<li data-party="or"><i></i><span class="or">Original</span> <b>30%</b> <small>1107 days</small></li>
+<li data-party="hm"><i></i><span class="hm">Home</span> <b>15%</b> <small>540 days</small></li>
+<li data-party="in"><i></i><span class="in">Independent</span> <b>12%</b> <small>460 days</small></li>
+</ul></div>
 </div>
 </section>
 
 <section>
 <h2 id="chronological-ledger">Chronological Ledger of Executives</h2>
 
-<table>
+<table class="gv-ledger">
 <thead>
 <tr>
   <th>No.</th>
@@ -335,81 +624,18 @@
 </tr>
 </thead>
 <tbody>
-<tr>
-  <td><b>1</b></td>
-  <td><b><a href="Elusion.html">Elusion</a></b></td>
-  <td>11 Jul 2015 – 31 Dec 2016</td>
-  <td><span class="badge-party bp-home">Home</span></td>
-  <td><i>Unestablished</i></td>
-  <td>Repelled Orion1 root infiltration; negotiated Ninzardia–Nightwork merger; founded Parry, Scope, Volley legions.</td>
-</tr>
-<tr>
-  <td><b>2</b></td>
-  <td><b><a href="DegreeZ.html">DegreeZ</a></b></td>
-  <td>1 Jan 2017 – 23 Oct 2018</td>
-  <td><span class="badge-party bp-orie">Original</span></td>
-  <td>Caleb Jensen<br>Xorbit</td>
-  <td>Presided over Golden Era; waged RSN War; deployed Aceiron as double agent; resigned following personal scandal.</td>
-</tr>
-<tr>
-  <td><b>3</b></td>
-  <td><b><a href="PiggieMLG.html">PiggieMLG</a></b></td>
-  <td>27 Oct 2018 – 27 Nov 2018</td>
-  <td><span class="badge-party bp-orie">Original</span></td>
-  <td>Xorbit</td>
-  <td>Instituted 31-day anti-drama regime; clashed with Ninzard Council and Chairman Ducky; impeached and ousted by Spikester.</td>
-</tr>
-<tr>
-  <td><b>4</b></td>
-  <td><b><a href="Spikester.html">Spikester</a></b></td>
-  <td>27 Nov 2018 – 29 Feb 2020</td>
-  <td><span class="badge-party bp-ind">Independent</span></td>
-  <td>Xorbit</td>
-  <td>Doctrine of Progression; incorporated Underground satellites; ran illicit pharmaceutical pipeline; arrested by feds.</td>
-</tr>
-<tr>
-  <td><b>5</b></td>
-  <td><b><a href="Syn.html">Syn</a></b></td>
-  <td>1 Mar 2020 – 7 Jan 2022</td>
-  <td><span class="badge-party bp-pv">Preservation</span></td>
-  <td>Cyntaku</td>
-  <td>Founded Preservation Party; enforced Hermit Kingdom lockdown; survived 1-vote May 2021 election; built institutional firewall.</td>
-</tr>
-<tr>
-  <td><b>6</b></td>
-  <td><b><a href="Cyntaku.html">Cyntaku</a></b></td>
-  <td>7 Jan 2022 – 10 Jul 2022</td>
-  <td><span class="badge-party bp-pv">Preservation</span></td>
-  <td>Adelynn</td>
-  <td>Established Nightian-Ninzardian Assembly; Anti-Bullying Amendment; navigated May Panic; rejected Cat's initial bribe.</td>
-</tr>
-<tr>
-  <td><b>7</b></td>
-  <td><b><a href="Spinzle.html">Spinzle</a></b></td>
-  <td>10 Jul 2022 – 3 Jan 2023</td>
-  <td><span class="badge-party bp-pop">OPC</span></td>
-  <td>Atria</td>
-  <td>CVS 10% ballot standard; Administrative Transparency Act; General's Veto; secret Dead Man's Switch against Cat.</td>
-</tr>
-<tr>
-  <td><b>8</b></td>
-  <td><b><a href="Adelynn.html">Adelynn</a></b></td>
-  <td>3 Jan 2023 – 31 Dec 2024</td>
-  <td><span class="badge-party bp-pv">Preservation</span></td>
-  <td>Grace</td>
-  <td>District Equalization; Sponsorship Standard; withstood Cat's terror campaign; single-handedly rescued Tierra from kidnapping.</td>
-</tr>
-<tr>
-  <td><b>9</b></td>
-  <td><b><a href="Aceiron.html">Aceiron</a></b></td>
-  <td>1 Jan 2025 – 22 Sep 2025</td>
-  <td><span class="badge-party bp-orie">Original</span></td>
-  <td>AJ</td>
-  <td>Declared and executed Nexit; severed Nightwork from Cat's empire; purged neo-Nazi cells; abolished the office.</td>
-</tr>
+<tr data-gov="elusion"><td><b>1</b></td><td><b><a href="Elusion.html">Elusion</a></b></td><td>11 Jul 2015 –<br>31&nbsp;Dec&nbsp;2016</td><td><span class="hm">Home</span></td><td><i>Unestablished</i></td><td>Repelled Orion1 root infiltration; negotiated Ninzardia–Nightwork merger; founded Parry, Scope, Volley legions.</td></tr>
+<tr data-gov="degreez"><td><b>2</b></td><td><b><a href="DegreeZ.html">DegreeZ</a></b></td><td>1 Jan 2017 –<br>23&nbsp;Oct&nbsp;2018</td><td><span class="or">Original</span></td><td>Aceiron<br>Xorbit</td><td>Presided over Golden Era; waged RSN War; deployed Aceiron as double agent; resigned following personal scandal.</td></tr>
+<tr data-gov="piggiemlg"><td><b>3</b></td><td><b><a href="PiggieMLG.html">PiggieMLG</a></b></td><td>27 Oct 2018 –<br>27&nbsp;Nov&nbsp;2018</td><td><span class="or">Original</span></td><td>Xorbit</td><td>Instituted 31-day anti-drama regime; clashed with Ninzard Council and Chairman Ducky; impeached and ousted by Spikester.</td></tr>
+<tr data-gov="spikester"><td><b>4</b></td><td><b><a href="Spikester.html">Spikester</a></b></td><td>27 Nov 2018 –<br>29&nbsp;Feb&nbsp;2020</td><td><span class="in">Independent</span></td><td>Xorbit</td><td>Doctrine of Progression; incorporated Underground satellites; ran illicit pharmaceutical pipeline; arrested by feds.</td></tr>
+<tr data-gov="syn"><td><b>5</b></td><td><b><a href="Syn.html">Syn</a></b></td><td>29 Feb 2020 –<br>4&nbsp;Jan&nbsp;2022</td><td><span class="pv">Preservation</span></td><td>Cyntaku</td><td>Founded Preservation Party; enforced Hermit Kingdom lockdown; survived the two-round election of March–April 2021; built institutional firewall.</td></tr>
+<tr data-gov="cyntaku"><td><b>6</b></td><td><b><a href="Cyntaku.html">Cyntaku</a></b></td><td>4 Jan 2022 –<br>6&nbsp;Jul&nbsp;2022</td><td><span class="pv">Preservation</span></td><td>Adelynn</td><td>Established Nightian-Ninzardian Assembly; Anti-Bullying Amendment; navigated May Panic; rejected Cat's initial bribe.</td></tr>
+<tr data-gov="spinzle"><td><b>7</b></td><td><b><a href="Spinzle.html">Spinzle</a></b></td><td>6 Jul 2022 –<br>3&nbsp;Jan&nbsp;2023</td><td><span class="or">OPC</span></td><td>Atria</td><td>CVS 10% ballot standard; Administrative Transparency Act; General's Veto; secret Dead Man's Switch against Cat.</td></tr>
+<tr data-gov="adelynn"><td><b>8</b></td><td><b><a href="Adelynn.html">Adelynn</a></b></td><td>3 Jan 2023 –<br>31&nbsp;Dec&nbsp;2024</td><td><span class="pv">Preservation</span></td><td>Grace</td><td>District Equalization; Sponsorship Standard; withstood Cat's terror campaign; single-handedly rescued Tierra from kidnapping.</td></tr>
+<tr data-gov="aceiron"><td><b>9</b></td><td><b><a href="Aceiron.html">Aceiron</a></b></td><td>1 Jan 2025 –<br>20&nbsp;Aug&nbsp;2025</td><td><span class="or">Original</span></td><td>AJ</td><td>Declared and executed Nexit; severed Nightwork from Cat's empire; purged neo-Nazi cells; abolished the office.</td></tr>
 </tbody>
 </table>
-
+<p class="note">Aceiron governed until 20 August 2025, then led the community as its de facto president until the office was abolished on 22 September 2025.</p>
 </section>
 
 <section>
@@ -424,12 +650,218 @@
 </ol>
 </section>
 
-<!-- Automatic navbox placeholder rendered via wiki.js -->
-<nav class="navbox" data-template="governors-of-nightwork"></nav>
+<nav class="navbox" data-title="Governors of Nightwork"><ol><li>Elusion</li><li>DegreeZ</li><li>PiggieMLG</li><li>Spikester</li><li>Syn</li><li>Cyntaku</li><li>Spinzle</li><li>Adelynn</li><li>Aceiron</li></ol></nav>
 
-<!-- Automatic category list populated by template -->
-<ul class="cats" data-template="governors-of-nightwork"></ul>
+<ul class="cats"><li>Governors of Nightwork</li><li>Nightwork</li></ul>
 
 <script src="wiki.js"></script>
+<script>
+/* GOVERNOR OF NIGHTWORK: this page's own script (after wiki.js). It
+   - lights a governor up (eyes closed, party glow) when pointed at in the hall, on the timeline or in the dossier;
+   - shows who held the office on any day as the pointer moves along the timeline;
+   - turns the nine dossiers into a switcher with a tab for each governor (all nine show without the script);
+   - draws each governor's sprite head for the tabs and the card, and the emblem in the infobox. */
+(function () {
+  'use strict';
+  var doc = document;
+  var each = function (l, f) { Array.prototype.forEach.call(l, f); };
+  var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  var ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX'];
+  var fig = doc.getElementById('throne-line');
+  var box = doc.getElementById('dossiers-box');
+  if (!fig) return;
+  function day(s) { var p = s.split('-'); return Date.UTC(+p[0], +p[1] - 1, +p[2]); }
+  function fmt(t) { var d = new Date(t); return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear(); }
+
+  var slots = Array.prototype.slice.call(fig.querySelectorAll('.gv-slot'));
+  var govs = slots.map(function (s) {
+    return { key: s.getAttribute('data-gov'), el: s, name: s.getAttribute('data-name'), n: +s.getAttribute('data-n'),
+      party: s.getAttribute('data-party'), pname: s.getAttribute('data-pname'), badge: s.getAttribute('data-badge'),
+      term: s.getAttribute('data-term'), len: s.getAttribute('data-len'),
+      from: day(s.getAttribute('data-from')), to: day(s.getAttribute('data-to')) + 864e5,
+      spans: fig.querySelectorAll('.gv-span[data-gov="' + s.getAttribute('data-gov') + '"]'),
+      wire: fig.querySelector('.gv-wires path[data-gov="' + s.getAttribute('data-gov') + '"]'),
+      img: s.querySelector('.gv-sp img:not(.gv-eye)'), heads: [] };
+  });
+  var byKey = {}; govs.forEach(function (g) { byKey[g.key] = g; });
+
+  /* ---------- a sprite's head (16 x 16 pixels from just above the scalp), as on the election banners ---------- */
+  function head(g, canvas) {
+    function draw() {
+      var img = g.img; if (!img || !img.naturalWidth) return;
+      var top = 5;
+      try {
+        var c = doc.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+        var cx = c.getContext('2d'); cx.drawImage(img, 0, 0);
+        var d = cx.getImageData(0, 0, c.width, c.height).data;
+        for (var y = 0; y < c.height; y++) {
+          var n = 0;
+          for (var x = 8; x < 24; x++) if (d[(y * c.width + x) * 4 + 3] > 0) n++;
+          if (n >= 3) { top = y; break; }
+        }
+      } catch (e) { /* keep the usual height */ }
+      canvas.width = 16; canvas.height = 16;
+      var k = canvas.getContext('2d'); k.imageSmoothingEnabled = false; k.clearRect(0, 0, 16, 16);
+      k.drawImage(img, 8, Math.max(0, top - 1), 16, 16, 0, 0, 16, 16);
+    }
+    if (g.img && g.img.complete && g.img.naturalWidth) draw(); else if (g.img) g.img.addEventListener('load', draw);
+  }
+
+  /* ---------- lighting a governor up everywhere at once ---------- */
+  var lit = null;
+  function light(g) {
+    if (lit === g) return;
+    if (lit) {
+      lit.el.classList.remove('lit');
+      each(lit.spans, function (s) { s.classList.remove('lit'); });
+      if (lit.wire) lit.wire.classList.remove('lit');
+      var r0 = doc.querySelector('.gv-ledger tr[data-gov="' + lit.key + '"]'); if (r0) r0.classList.remove('lit');
+    }
+    lit = g;
+    if (g) {
+      g.el.classList.add('lit');
+      each(g.spans, function (s) { s.classList.add('lit'); });
+      if (g.wire) g.wire.classList.add('lit');
+    }
+  }
+
+  /* ---------- the card beside a governor in the hall ---------- */
+  var card = fig.querySelector('.gv-card');
+  var cardCanvas = doc.createElement('canvas');
+  function showCard(g) {
+    card.setAttribute('data-party', g.party);
+    card.innerHTML = '<div class="gv-card-h"></div>' +
+      '<div class="gv-card-r"><span>Term</span><span></span><span>Length</span><span></span><span>Party</span><span class="pp"></span></div>' +
+      '<div class="gv-card-f">Click to open the dossier</div>';
+    var h = card.querySelector('.gv-card-h');
+    h.appendChild(cardCanvas);
+    var t = doc.createElement('div');
+    t.innerHTML = '<div class="gv-card-k"></div><div class="gv-card-n"></div>';
+    t.firstChild.textContent = ROMAN[g.n] + ' · ' + g.badge;
+    t.lastChild.textContent = g.name;
+    h.appendChild(t);
+    var cells = card.querySelectorAll('.gv-card-r span');
+    cells[1].textContent = g.term; cells[3].textContent = g.len; cells[5].textContent = g.pname;
+    head(g, cardCanvas);
+    /* beside the governor's alcove: to the right for the first five, to the left for the rest */
+    var fr = fig.getBoundingClientRect(), sr = g.el.getBoundingClientRect(), k = fr.width / fig.offsetWidth;
+    var x = g.n <= 5 ? (sr.right - fr.left) / k - 6 : (sr.left - fr.left) / k - card.offsetWidth + 6;
+    card.style.left = Math.max(4, Math.min(fig.offsetWidth - card.offsetWidth - 4, x)) + 'px';
+    card.style.top = ((sr.top - fr.top) / k + 40) + 'px';
+    card.classList.add('on');
+  }
+  function hideCard() { card.classList.remove('on'); }
+
+  slots.forEach(function (s, i) {
+    var g = govs[i], a = s.querySelector('.gv-slot-a');
+    a.addEventListener('pointerenter', function (e) { if (e.pointerType === 'touch') return; light(g); showCard(g); });
+    a.addEventListener('pointerleave', function (e) { if (e.pointerType === 'touch') return; light(null); hideCard(); });
+    a.addEventListener('focus', function () { light(g); showCard(g); });
+    a.addEventListener('blur', function () { light(null); hideCard(); });
+    a.addEventListener('click', function (e) { if (box) { e.preventDefault(); open(g.key, true); } });
+  });
+
+  /* ---------- pointing along the timeline: who held the office that day ---------- */
+  var track = fig.querySelector('.gv-track'), cursor = fig.querySelector('.gv-cursor');
+  var t0 = day(fig.getAttribute('data-from')), t1 = day(fig.getAttribute('data-to'));
+  var ABOLISHED = Date.UTC(2025, 8, 22), DEFACTO = Date.UTC(2025, 7, 21);
+  function scrub(e) {
+    var r = track.getBoundingClientRect();
+    var f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+    var t = t0 + f * (t1 - t0);
+    var g = null, note = '';
+    for (var i = 0; i < govs.length; i++) if (t >= govs[i].from && t < govs[i].to) { g = govs[i]; }
+    var b = cursor.querySelector('b'), sm = cursor.querySelector('small');
+    if (g) { note = g.name; sm.textContent = fmt(t) + ' · ' + g.pname; }
+    else if (t < govs[0].from) { note = 'Before the office'; sm.textContent = fmt(t); }
+    else if (t >= ABOLISHED) { note = 'Office abolished'; sm.textContent = fmt(t); }
+    else if (t >= DEFACTO) { g = byKey.aceiron; note = 'Aceiron, de facto president'; sm.textContent = fmt(t) + ' · office ends 22 Sep'; }
+    else { note = 'Vacant'; sm.textContent = fmt(t); }
+    b.textContent = note;
+    cursor.setAttribute('data-party', g ? g.party : '');
+    if (!g) cursor.style.removeProperty('--pc');
+    /* the cursor sits in the bar at the pointer; its label stays inside the bar's width */
+    var w = track.offsetWidth, x = f * w;
+    cursor.style.left = (f * 100) + '%';
+    var bub = cursor.querySelector('.gv-bubble'), half = bub.offsetWidth / 2;
+    var shift = Math.max(half - x, Math.min(w - x - half, 0));
+    bub.style.transform = 'translateX(calc(-50% + ' + shift + 'px))';
+    cursor.classList.add('on');
+    light(g);
+  }
+  track.addEventListener('pointermove', scrub);
+  track.addEventListener('pointerdown', scrub);
+  track.addEventListener('pointerleave', function () { cursor.classList.remove('on'); light(null); });
+  each(track.querySelectorAll('a.gv-span'), function (a) {
+    a.addEventListener('click', function (e) { if (box) { e.preventDefault(); open(a.getAttribute('data-gov'), true); } });
+  });
+
+  /* ---------- the dossiers as a switcher ---------- */
+  var tabs = [], current = null;
+  function open(key, scroll, quiet) {
+    var g = byKey[key]; if (!g || !box) return;
+    each(box.querySelectorAll('.gv-doss'), function (d) { d.classList.toggle('on', d.getAttribute('data-gov') === key); });
+    tabs.forEach(function (t) { var on = t.getAttribute('data-gov') === key; t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1; });
+    slots.forEach(function (s) { s.classList.toggle('sel', s.getAttribute('data-gov') === key); });
+    current = key;
+    if (!quiet && history.replaceState) history.replaceState(null, '', '#gov-' + key);
+    if (scroll) box.previousElementSibling.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  if (box) {
+    box.classList.add('js');
+    var list = doc.createElement('div');
+    list.className = 'gv-tabs no-name';
+    list.setAttribute('role', 'tablist');
+    list.setAttribute('aria-label', 'Governors');
+    govs.forEach(function (g) {
+      var t = doc.createElement('button');
+      t.type = 'button'; t.className = 'gv-tab'; t.setAttribute('role', 'tab');
+      t.setAttribute('data-gov', g.key); t.setAttribute('data-party', g.party);
+      t.setAttribute('aria-controls', 'gov-' + g.key);
+      var c = doc.createElement('canvas'); t.appendChild(c); head(g, c);
+      var sm = doc.createElement('small'); sm.textContent = ROMAN[g.n]; t.appendChild(sm);
+      t.appendChild(doc.createTextNode(g.name));
+      t.addEventListener('click', function () { open(g.key, false); });
+      t.addEventListener('pointerenter', function () { light(g); });
+      t.addEventListener('pointerleave', function () { light(null); });
+      tabs.push(t); list.appendChild(t);
+    });
+    list.addEventListener('keydown', function (e) {
+      var i = tabs.indexOf(doc.activeElement); if (i < 0) return;
+      var j = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : -2;
+      if (j === -2) return;
+      e.preventDefault(); j = (j + tabs.length) % tabs.length;
+      tabs[j].focus(); open(tabs[j].getAttribute('data-gov'), false);
+    });
+    box.parentNode.insertBefore(list, box);
+    each(box.querySelectorAll('.gv-doss'), function (d) { d.setAttribute('role', 'tabpanel'); });
+    /* previous / next inside a dossier */
+    each(box.querySelectorAll('.gv-d-nav a'), function (a) {
+      a.addEventListener('click', function (e) { e.preventDefault(); open(a.getAttribute('href').slice(5), false); });
+    });
+    /* the sprite at the foot of the portrait closes its eyes and glows when pointed at */
+    each(box.querySelectorAll('.gv-d-stage'), function (st) {
+      st.addEventListener('pointerenter', function () { st.classList.add('lit'); });
+      st.addEventListener('pointerleave', function () { st.classList.remove('lit'); });
+    });
+    var start = (location.hash.match(/^#gov-(\w+)$/) || [])[1];
+    open(byKey[start] ? start : govs[0].key, false, true);
+    if (byKey[start]) setTimeout(function () { box.previousElementSibling.scrollIntoView({ block: 'start' }); }, 300);
+  }
+
+  /* ---------- the ledger rows light their governor too ---------- */
+  each(doc.querySelectorAll('.gv-ledger tr[data-gov]'), function (tr) {
+    tr.addEventListener('pointerenter', function () { tr.classList.add('lit'); });
+    tr.addEventListener('pointerleave', function () { tr.classList.remove('lit'); });
+  });
+
+  /* ---------- the infobox emblem: the five districts of Nightwork ringed by nine stars ---------- */
+  var tpl = doc.getElementById('gv-seal'), frame = doc.querySelector('aside.infobox .ib-fig .frame');
+  if (tpl && frame) {
+    frame.classList.add('gv-seal');
+    frame.insertAdjacentHTML('beforeend', tpl.innerHTML);
+  }
+})();
+</script>
 </body>
 </html>

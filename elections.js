@@ -760,7 +760,7 @@
     tally.setAttribute('role', 'group');
     tally.setAttribute('aria-label', 'Result');
     function party(i) { return esc(sides[i].getAttribute('data-party') || 'none'); }
-    /* above the bar: the side's word and its name, with the head of its first sprite on the outer side */
+    /* above the bar: the side's word and its name, with the head of its candidate's sprite on the outer side */
     function top(i) {
       var s = sides[i], name = s.getAttribute('data-name');
       var head = s.querySelector('.bout-sp') ? '<span class="bt-head" aria-hidden="true"><canvas class="open"></canvas><canvas class="shut"></canvas></span>' : '';
@@ -789,7 +789,8 @@
     /* the head icons: eyes open, and the closed-eye frame for when the side is pointed at */
     var heads = tally.querySelectorAll('.bt-top .bt-end');
     sides.forEach(function (s, i) {
-      var box = heads[i].querySelector('.bt-head'), sp = s.querySelector('.bout-sp');
+      /* the candidate's sprite, not the running mate's, whatever order they are written in */
+      var box = heads[i].querySelector('.bt-head'), sp = s.querySelector('.bout-sp:not(.mate)') || s.querySelector('.bout-sp');
       if (!box || !sp) return;
       var base = sp.querySelector('img:not(.bout-eye)'), eye = sp.querySelector('img.bout-eye');
       if (base) spriteHead(base, box.querySelector('.open'), function () { box.classList.add('ok'); });
