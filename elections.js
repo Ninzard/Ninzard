@@ -9,7 +9,10 @@
      - the results table: the winner's cells shaded in their colour,
        every candidate's numbers glowing in their party's colour, and
        each row lighting up its district on the map;
-     - the portraits at the head of endorsement panels.
+     - the portraits at the head of endorsement panels;
+     - the face-off banner at the head of a gubernatorial page: the voters'
+       silhouettes beside the VS, the sprites' blinking and the neon bar
+       of the result.
    Everything shown is read from the page itself: candidates and votes
    from the results table, district shapes from the map's <svg>, the
    map's title from its data-plate. No election is written in here.
@@ -621,6 +624,166 @@
     p.querySelector('img').alt = name;
     p.querySelector('b').textContent = name.charAt(0).toUpperCase();
     picture(p.querySelector('img'), p.getAttribute('data-image'), p, 'm');
+  });
+
+  /* ================================================================
+     THE FACE-OFF BANNER: <figure class="bout"> (styles and markup in elections.css)
+     The sprites are ordinary <img data-image> pictures that wiki.js loads; this adds
+     the voters' silhouettes beside the VS, varies each sprite's blink, and puts the
+     neon bar of the result under the stage. Everything is read from the two sides'
+     data-party, data-votes, data-label and data-name.
+     ================================================================ */
+  /* how many silhouettes share the two crowds: each side gets its share of these */
+  var CROWD = 24;
+  function seeded(seed) {
+    return function () {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function hashOf(str) { var h = 2166136261; for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  /* one voter: rows of [from, to) pixel spans on a 16-pixel-wide grid, feet on the last row,
+     and an optional light held up on the side facing the VS */
+  function voter(rnd, raise) {
+    var h = 29 + Math.floor(rnd() * 9), rows = [], c = 8, i;
+    var hair = Math.floor(rnd() * 6), skirt = rnd() < 0.22;
+    function span(y, a, b) { (rows[y] = rows[y] || []).push([a, b]); }
+    /* room above the head for a raised arm and its light, a bun or spikes */
+    var hy = raise ? 6 : hair === 4 ? 2 : hair === 5 ? 1 : 0;
+    if (hair === 4) { span(hy - 2, c - 1, c + 1); span(hy - 1, c - 2, c + 2); }           /* a bun */
+    if (hair === 5) { span(hy - 1, c - 2, c - 1); span(hy - 1, c, c + 1); span(hy - 1, c + 2, c + 3); } /* spikes */
+    span(hy, c - 2, c + 2);
+    for (i = 1; i <= 5; i++) span(hy + i, c - 3, c + 3);
+    span(hy + 6, c - 2, c + 2);
+    if (hair === 1) for (i = 1; i <= 10; i++) span(hy + i, c - 4, c + 4);                    /* long hair */
+    if (hair === 2) { span(hy + 2, c + 3, c + 5); span(hy + 3, c + 3, c + 6); span(hy + 4, c + 4, c + 6); span(hy + 5, c + 4, c + 5); } /* a ponytail */
+    if (hair === 3) { span(hy + 1, c - 4, c + 6); span(hy, c - 3, c + 3); }                   /* a cap */
+    var ny = hy + 7, ty = ny + 1, tH = Math.round(h * 0.34), legY = ty + tH, end = hy + h - 1;
+    span(ny, c - 1, c + 1);
+    span(ty, c - 4, c + 4);
+    for (i = 1; i < tH; i++) span(ty + i, c - 5, c + 5);
+    if (skirt) {
+      for (i = 0; i < 4; i++) span(legY + i, c - 4 - (i >> 1), c + 4 + (i >> 1));
+      for (i = legY + 4; i < end; i++) { span(i, c - 3, c - 1); span(i, c + 1, c + 3); }
+    } else {
+      span(legY, c - 4, c + 4);
+      for (i = legY + 1; i < end; i++) { span(i, c - 4, c - 1); span(i, c + 1, c + 4); }
+    }
+    span(end, c - 5, c - 1); span(end, c + 1, c + 5);
+    var stick = null;
+    if (raise) {                       /* one arm up on the side facing the VS, holding a light */
+      for (i = hy - 3; i <= ty; i++) span(i, c + 5, c + 6);
+      stick = [c + 5, hy - 6];
+    }
+    return { rows: rows, stick: stick, h: end + 1 };
+  }
+  function voterPath(v, k, x, yFeet) {
+    var y0 = yFeet - v.h * k, body = '';
+    v.rows.forEach(function (spans, y) {
+      if (!spans) return;
+      spans.forEach(function (s) {
+        body += 'M' + (x + s[0] * k) + ' ' + (y0 + y * k) + 'h' + ((s[1] - s[0]) * k) + 'v' + k + 'h' + (-(s[1] - s[0]) * k) + 'z';
+      });
+    });
+    var out = '<path class="cb' + (v.tone ? ' t2' : '') + '" d="' + body + '"/>';
+    if (v.stick) out += '<rect class="cg" x="' + (x + v.stick[0] * k) + '" y="' + (y0 + v.stick[1] * k) + '" width="' + k + '" height="' + (3 * k) + '"/>';
+    return out;
+  }
+  function crowd(side, n, rnd, outerFree) {
+    var W = side.clientWidth || 430, H = side.clientHeight || 214;
+    /* the crowd fills the floor from the candidates toward the VS */
+    var sprites = side.querySelectorAll('.bout-sp'), start = 10;
+    each(sprites, function (sp) {
+      var outer = side.matches(':last-child') ? W - sp.offsetLeft - sp.offsetWidth : sp.offsetLeft;
+      start = Math.max(start, outer + sp.offsetWidth * 23 / 32 - 6);
+    });
+    var stop = W - 54, room = Math.max(40, stop - start);
+    var nBack = Math.floor(n * 0.45), nFront = n - nBack;
+    var html = '';
+    function row(count, k, feet, cls, gap) {
+      if (!count) return;
+      var step = Math.min(gap, room / count), x0 = start + Math.max(0, (room - step * count) * (outerFree ? 0.5 : 0));
+      html += '<g class="' + cls + '">';
+      for (var i = 0; i < count; i++) {
+        var raise = cls === 'front' && rnd() < 0.28;
+        var v = voter(rnd, raise);
+        v.tone = i % 2;
+        var x = x0 + i * step + (rnd() - 0.5) * 4 - 8 * k + step / 2;
+        html += voterPath(v, k, Math.round(x), feet);
+      }
+      html += '</g>';
+    }
+    row(nBack, 2, H - 54, 'back', 23);
+    row(nFront, 3, H - 30, 'front', 30);
+    var flip = side.matches(':last-child') ? ' transform="translate(' + W + ',0) scale(-1,1)"' : '';
+    var svg = doc.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('class', 'bout-crowd');
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('shape-rendering', 'crispEdges');
+    svg.innerHTML = '<g' + flip + '>' + html + '</g>';
+    side.insertBefore(svg, side.firstChild);
+    each(svg.querySelectorAll('.cg'), function (g) { g.style.animationDelay = (-rnd() * 2.8).toFixed(2) + 's'; });
+  }
+  function boutBar(fig, sides, votes, sum) {
+    var won = votes[0] === votes[1] ? -1 : votes[0] > votes[1] ? 0 : 1;
+    var wonLabel = fig.getAttribute('data-won-label') || 'Elected';
+    var tally = el('div', 'bout-tally dark');
+    tally.setAttribute('role', 'group');
+    tally.setAttribute('aria-label', 'Result');
+    var rowHtml = '';
+    function end(i) {
+      var s = sides[i], party = esc(s.getAttribute('data-party') || 'none'), share = votes[i] / sum * 100;
+      return '<div class="bt-end" data-party="' + party + '">' +
+        '<b class="bt-party">' + esc(s.getAttribute('data-label') || '') + '</b>' +
+        (s.getAttribute('data-name') ? '<span class="bt-name">' + esc(s.getAttribute('data-name')) + '</span>' : '') +
+        '<span class="bt-votes pn" data-party="' + party + '">' + num(votes[i]) + '</span>' +
+        '<span class="bt-pct">' + pct(share) + '</span>' +
+        '<span class="bt-won' + (won === i ? '"' : ' ghost" aria-hidden="true"') + '>' + esc(wonLabel) + '</span></div>';
+    }
+    rowHtml = '<div class="bt-row">' + end(0) + '<span class="bt-mid">' + num(sum) + ' votes</span>' + end(1) + '</div>';
+    var at = votes[0] / sum * 100;
+    tally.innerHTML = rowHtml +
+      '<div class="bt-track"><div class="bt-lane">' +
+      '<span class="bt-tube" data-party="' + esc(sides[0].getAttribute('data-party') || 'none') + '" style="--w:' + at.toFixed(2) + '%"></span>' +
+      '<span class="bt-tube r" data-party="' + esc(sides[1].getAttribute('data-party') || 'none') + '" style="--w:' + (100 - at).toFixed(2) + '%"></span>' +
+      '<i class="bt-half" aria-hidden="true"></i><i class="bt-meet" aria-hidden="true" style="--at:' + at.toFixed(2) + '%"></i>' +
+      '</div></div>';
+    var cap = fig.querySelector(':scope > figcaption');
+    fig.insertBefore(tally, cap);
+    /* the tubes light up from the two ends when the bar comes into view */
+    var light = function () { tally.classList.remove('dark'); };
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) light();
+    else if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { light(); io.disconnect(); } }); }, { threshold: 0.4 });
+      io.observe(tally);
+    } else light();
+  }
+  each(main.querySelectorAll('figure.bout'), function (fig) {
+    var stage = fig.querySelector('.bout-stage');
+    var sides = stage ? Array.prototype.filter.call(stage.children, function (c) { return c.classList.contains('bout-side'); }) : [];
+    if (sides.length !== 2) return;
+    var votes = sides.map(function (s) { return +s.getAttribute('data-votes') || 0; }), sum = votes[0] + votes[1];
+    var rnd = seeded(hashOf(sides.map(function (s) { return s.getAttribute('data-label') + s.getAttribute('data-votes'); }).join('|')));
+    /* the VS takes a tint of each side's colour */
+    var lc = getComputedStyle(sides[0]).getPropertyValue('--pc').trim(), rc = getComputedStyle(sides[1]).getPropertyValue('--pc').trim();
+    if (lc) fig.style.setProperty('--lc', lc);
+    if (rc) fig.style.setProperty('--rc', rc);
+    /* every sprite blinks on its own rhythm, now and then twice */
+    each(fig.querySelectorAll('.bout-sp'), function (sp) {
+      sp.style.setProperty('--bd', (4.2 + rnd() * 3.4).toFixed(2) + 's');
+      sp.style.setProperty('--bdl', (-rnd() * 7).toFixed(2) + 's');
+      if (rnd() < 0.35) sp.classList.add('dbl');
+    });
+    if (!sum) return;
+    var shares = votes.map(function (v) { return v / sum * CROWD; });
+    var counts = shares.map(Math.floor), left = CROWD - counts[0] - counts[1];
+    if (left > 0) counts[shares[0] - counts[0] >= shares[1] - counts[1] ? 0 : 1] += left;
+    counts = counts.map(function (c) { return Math.max(1, c); });
+    sides.forEach(function (s, i) { crowd(s, counts[i], rnd, !s.querySelector('.bout-sp')); });
+    boutBar(fig, sides, votes, sum);
   });
 
   /* ---------- draw the maps: full maps first, then copies of them ---------- */

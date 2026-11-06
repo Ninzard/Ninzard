@@ -263,3 +263,130 @@
 @media (prefers-reduced-motion:reduce){
   .ez-sweep,.ez-ping{display:none}
 }
+
+/* ================================================================
+   Face-off banner at the head of a gubernatorial page (5 November 2026):
+   the candidates' sprites at the two ends of a full-width stage, the
+   voters as pixel silhouettes beside the VS, and a neon bar of the
+   result underneath. The sprites only stare and blink; nothing bobs.
+   <figure class="bout no-name">
+     <div class="bout-stage">
+       <div class="bout-side" data-party="or" data-votes="372" data-label="Original" data-name="Aceiron">
+         <span class="bout-sp"><img data-image="aceiron_sprite" alt="Aceiron"><img class="bout-eye" data-image="aceiron_blink_sprite" alt=""></span>
+         <span class="bout-sp mate">… the running mate, behind …</span>
+       </div>
+       <div class="bout-vs" aria-hidden="true"><b>VS</b></div>
+       <div class="bout-side" data-party="pv" …>…</div>
+     </div>
+     <figcaption>…</figcaption>
+   </figure>
+   The first side stands on the left, the second on the right. elections.js
+   draws the silhouettes (one figure per share of 24, so a landslide shows as
+   a bigger crowd) and the bar from data-votes, data-label and data-name; a
+   figure's data-won-label (default "Elected") names the winner's tag.
+   Sprites stay at a whole-number scale (4x) so their pixels stay square.
+   ================================================================ */
+.bout{--lc:var(--orie);--rc:var(--pres);margin:4px 0 24px;clear:both}
+.bout-stage{position:relative;height:214px;overflow:hidden;border:1px solid var(--line);border-radius:4px;
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px) 0 0/8px 8px,
+    linear-gradient(0deg,rgba(255,255,255,.03) 1px,transparent 1px) 0 0/8px 8px,
+    linear-gradient(180deg,#05030a 0%,#0c0716 62%,#140b22 100%);
+  box-shadow:inset 0 0 40px rgba(0,0,0,.7)}
+/* the floor and its horizon line */
+.bout-stage::after{content:"";position:absolute;left:0;right:0;bottom:0;height:46px;z-index:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 2px),
+    linear-gradient(90deg,color-mix(in srgb,var(--lc) 22%,transparent),rgba(255,255,255,.04) 50%,color-mix(in srgb,var(--rc) 24%,transparent)),
+    linear-gradient(180deg,#120a1e,#07040c)}
+.bout-side{position:absolute;top:0;bottom:0;width:50%;z-index:1}
+.bout-side:first-child{left:0}
+.bout-side:last-child{right:0}
+/* each side lit from its outer corner in its party's colour */
+.bout-side::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(70% 95% at 0% 100%,color-mix(in srgb,var(--pc) 34%,transparent),transparent 72%),
+    radial-gradient(40% 60% at 14% 100%,color-mix(in srgb,var(--pc) 30%,transparent),transparent 70%)}
+.bout-side:last-child::before,.bout-side:last-child::after{transform:scaleX(-1)}
+/* the light behind the crowd, so the voters stand out as dark figures against it */
+.bout-side::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(52% 30% at 70% 50%,color-mix(in srgb,var(--pc) 58%,#fff 0%),transparent 78%),
+    radial-gradient(38% 16% at 74% 46%,color-mix(in srgb,var(--pc) 40%,#fff),transparent 80%),
+    linear-gradient(180deg,transparent 26%,color-mix(in srgb,var(--pc) 16%,transparent) 48%,transparent 74%)}
+/* the silhouettes (drawn by elections.js) */
+.bout-crowd{position:absolute;inset:0;z-index:1;overflow:visible;pointer-events:none}
+.bout-crowd .cb{fill:color-mix(in srgb,var(--pc) 6%,#030106)}
+.bout-crowd .cb.t2{fill:color-mix(in srgb,var(--pc) 14%,#0a0511)}
+.bout-crowd .back .cb{fill:color-mix(in srgb,var(--pc) 26%,#0d0718)}
+.bout-crowd .back .cb.t2{fill:color-mix(in srgb,var(--pc) 34%,#120a1f)}
+.bout-crowd .cg{fill:color-mix(in srgb,var(--pc) 55%,#fff);filter:drop-shadow(0 0 2px var(--pc)) drop-shadow(0 0 5px var(--pc));animation:boutStick 2.8s ease-in-out infinite}
+@keyframes boutStick{50%{opacity:.5}}
+/* the candidates */
+.bout-sp{position:absolute;bottom:12px;width:128px;height:160px;z-index:3}
+.bout-sp img{position:absolute;inset:0;display:block;width:100%;height:100%;margin:0;image-rendering:pixelated;
+  filter:var(--pic-filter) drop-shadow(0 0 6px color-mix(in srgb,var(--pc) 75%,transparent))}
+.bout-sp::after{content:"";position:absolute;left:24%;right:24%;bottom:-6px;height:12px;border-radius:50%;z-index:-1;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--pc) 70%,transparent),transparent)}
+.bout-side:first-child .bout-sp{left:46px}
+.bout-side:last-child .bout-sp{right:46px}
+.bout-sp.mate{bottom:34px;z-index:2}
+.bout-side:first-child .bout-sp.mate{left:0}
+.bout-side:last-child .bout-sp.mate{right:0}
+.bout-sp.mate img{filter:var(--pic-filter) brightness(.82) drop-shadow(0 0 5px color-mix(in srgb,var(--pc) 60%,transparent))}
+/* blinking: the closed-eye frame shows for an eighth of a second now and then (elections.js varies the rhythm) */
+.bout-sp .bout-eye{opacity:0;animation:boutBlink var(--bd,5.3s) steps(1,end) var(--bdl,0s) infinite}
+.bout-sp.dbl .bout-eye{animation-name:boutBlink2}
+.bout-side:last-child .bout-sp .bout-eye{--bd:6.1s;--bdl:-2.3s}
+.bout-sp.mate .bout-eye{--bd:4.7s;--bdl:-3.4s}
+.bout-sp .bout-eye:not([src]),.bout-sp .bout-eye.fail{visibility:hidden}
+@keyframes boutBlink{0%{opacity:0}94%{opacity:1}96.4%{opacity:0}100%{opacity:0}}
+@keyframes boutBlink2{0%{opacity:0}89%{opacity:1}91.4%{opacity:0}93.6%{opacity:1}96%{opacity:0}100%{opacity:0}}
+/* the VS, white because it belongs to no party, split faintly into the two sides' colours */
+.bout-vs{position:absolute;left:50%;top:0;bottom:0;width:96px;margin-left:-48px;z-index:4;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.bout-vs::before{content:"";position:absolute;left:50%;top:-10%;bottom:-10%;width:2px;margin-left:-1px;transform:rotate(13deg);
+  background:linear-gradient(180deg,transparent,rgba(255,255,255,.85) 30%,rgba(255,255,255,.85) 70%,transparent);
+  box-shadow:0 0 8px rgba(255,255,255,.6),0 0 22px rgba(255,255,255,.25)}
+.bout-vs::after{content:"";position:absolute;left:50%;top:50%;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(255,255,255,.16),transparent)}
+.bout-vs b{position:relative;z-index:1;margin-top:-18px;font:700 40px/1 var(--disp);font-style:italic;letter-spacing:.03em;color:#fff;
+  text-shadow:-3px 0 0 color-mix(in srgb,var(--lc) 80%,transparent),3px 0 0 color-mix(in srgb,var(--rc) 85%,transparent),0 0 10px rgba(255,255,255,.8),0 0 26px rgba(255,255,255,.4)}
+.bout-vs i{position:absolute;z-index:1;width:4px;height:4px;background:#fff;box-shadow:0 0 5px #fff,0 0 10px rgba(255,255,255,.6)}
+.bout-vs i:nth-of-type(1){top:30%;left:20%}
+.bout-vs i:nth-of-type(2){top:22%;right:22%;width:3px;height:3px}
+.bout-vs i:nth-of-type(3){top:62%;right:16%;width:3px;height:3px}
+.bout figcaption{margin-top:9px;text-align:center;font-size:13px;color:var(--mute)}
+
+/* ---------- the neon bar of the result, under the stage (built by elections.js) ---------- */
+.bout-tally{margin-top:14px;padding:0 2px 16px}
+.bt-row{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:12px}
+/* the two ends are equal-width columns, each centered, so the result reads as a mirror image */
+.bt-end{flex:none;width:220px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
+.bt-party{padding-left:.16em;font:700 24px/1 var(--disp);letter-spacing:.16em;text-transform:uppercase;color:var(--pc);text-shadow:var(--pg);animation:pnGlow 3.4s ease-in-out infinite}
+.bt-name{font:600 15px/1 var(--disp);color:var(--ink)}
+.bt-votes{margin-top:2px;font:700 32px/1 var(--disp)}
+.bt-pct{font:500 14px/1 var(--disp);letter-spacing:.04em;color:var(--mute)}
+.bt-won{margin-top:2px;padding:3px 7px 2px;border:1px solid rgba(255,255,255,.75);border-radius:3px;font:700 10px/1 var(--disp);letter-spacing:.2em;text-transform:uppercase;color:#fff;
+  box-shadow:var(--white-glow);text-shadow:0 0 6px rgba(255,255,255,.7)}
+/* the loser keeps an invisible tag, so both columns stay the same height */
+.bt-won.ghost{visibility:hidden}
+.bt-mid{align-self:center;flex:none;font:500 11px/1 var(--disp);letter-spacing:.18em;text-transform:uppercase;color:var(--mute)}
+.bt-track{position:relative;height:18px;padding:3px;border:1px solid var(--line);border-radius:12px;background:#06030b;box-shadow:inset 0 0 8px rgba(0,0,0,.9)}
+.bt-lane{position:relative;height:100%}
+.bt-tube{position:absolute;top:0;bottom:0;left:0;width:calc(var(--w) - 2px);border-radius:8px 2px 2px 8px;transform-origin:0 50%;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--pc) 45%,#fff) 0%,var(--pc) 42%,color-mix(in srgb,var(--pc) 70%,#000) 100%);
+  box-shadow:0 0 6px var(--pc),0 0 16px color-mix(in srgb,var(--pc) 70%,transparent),0 0 34px color-mix(in srgb,var(--pc) 35%,transparent);
+  transition:transform 1.5s cubic-bezier(.2,.75,.2,1)}
+.bt-tube.r{left:auto;right:0;border-radius:2px 8px 8px 2px;transform-origin:100% 50%}
+/* the bright core of the tube */
+.bt-tube::after{content:"";position:absolute;left:5px;right:5px;top:35%;height:2px;border-radius:2px;background:color-mix(in srgb,var(--pc) 25%,#fff);opacity:.85}
+.bout-tally.dark .bt-tube{transform:scaleX(0)}
+/* where the two meet, and the 50% mark: white, as everything non-partisan is */
+.bt-meet{position:absolute;top:-6px;bottom:-6px;left:var(--at);width:3px;margin-left:-1.5px;border-radius:2px;background:#fff;
+  box-shadow:0 0 6px #fff,0 0 14px rgba(255,255,255,.7);transition:opacity .4s ease 1.2s}
+.bout-tally.dark .bt-meet{opacity:0}
+.bt-half{position:absolute;left:50%;top:-11px;bottom:-11px;width:1px;background:rgba(255,255,255,.55);box-shadow:var(--white-glow)}
+.bt-half::after{content:"50%";position:absolute;top:100%;left:50%;transform:translate(-50%,3px);font:500 10px/1 var(--disp);letter-spacing:.08em;color:var(--mute)}
+@media (prefers-reduced-motion:reduce){
+  .bout-sp .bout-eye{animation:none}
+  .bout-crowd .cg{animation:none}
+  .bt-tube,.bt-meet{transition:none}
+  .bt-party{animation:none}
+}
